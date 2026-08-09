@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  TEACHER
+  STAFF
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
+  ABSENT
+}
+
+enum LeaveType {
+  SICK
+  ANNUAL
+  MATERNITY
+  OTHER
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model School {
+  id             String   @id @default(uuid())
+  name           String
+  latitude       Decimal  @db.Decimal(10, 8)
+  longitude      Decimal  @db.Decimal(11, 8)
+  radius_meters  Int
+  check_in_start DateTime @db.Time
+  check_in_end   DateTime @db.Time
+
+  users User[]
+
+  @@map("schools")
+}
+
+model User {
+  id        String @id @default(uuid())
+  nip       String @unique
+  full_name String
+  email     String @unique
+  role      Role
+  school_id String
+
+  school          School         @relation(fields: [school_id], references: [id])
+  attendances     Attendance[]
+  leave_requests  LeaveRequest[] @relation("UserLeaveRequests")
+  approved_leaves LeaveRequest[] @relation("ApproverLeaveRequests")
+
+  @@map("users")
+}
+
+model Attendance {
+  id             String           @id @default(uuid())
+  user_id        String
+  date           DateTime         @db.Date
+  check_in_time  DateTime?        @db.Timestamp
+  check_out_time DateTime?        @db.Timestamp
+  check_in_lat   Decimal?         @db.Decimal(10, 8)
+  check_in_long  Decimal?         @db.Decimal(11, 8)
+  status         AttendanceStatus
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@map("attendances")
+}
+
+model LeaveRequest {
+  id              String         @id @default(uuid())
+  user_id         String
+  leave_type      LeaveType
+  start_date      DateTime       @db.Date
+  end_date        DateTime       @db.Date
+  reason          String         @db.Text
+  attachment_url  String?
+  approval_status ApprovalStatus @default(PENDING)
+  approved_by     String?
+  created_at      DateTime       @default(now())
+
+  user     User  @relation("UserLeaveRequests", fields: [user_id], references: [id])
+  approver User? @relation("ApproverLeaveRequests", fields: [approved_by], references: [id])
+
+  @@map("leave_requests")
+}

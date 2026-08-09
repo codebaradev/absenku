@@ -292,6 +292,7 @@ erDiagram
         timestamp created_at
     }
 ```
+ 
 
 ### 7.2 SQL DDL (PostgreSQL / Supabase Schema)
 
