@@ -106,7 +106,7 @@ export default function AdminIzinPage() {
 
       {/* Search by Name */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#76777d] pointer-events-none" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#5f636b] pointer-events-none" />
         <Input
           type="search"
           value={search}
@@ -172,7 +172,7 @@ export default function AdminIzinPage() {
                 <div className="grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setStatus(r.id, "disetujui")}
-                    className="bg-[#10b981] hover:bg-[#059669] text-white rounded-lg h-11 flex items-center justify-center gap-1.5 text-sm font-semibold active:scale-[0.98] transition-transform"
+                    className="bg-[#047857] hover:bg-[#065f46] text-white rounded-lg h-11 flex items-center justify-center gap-1.5 text-sm font-semibold active:scale-[0.98] transition-transform"
                   >
                     <Check className="w-4 h-4" />
                     Setujui
@@ -259,7 +259,7 @@ export default function AdminIzinPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => setStatus(r.id, "disetujui")}
-                          className="bg-[#10b981] hover:bg-[#059669] text-white rounded-lg h-9 px-3 flex items-center gap-1.5 text-sm font-semibold transition-colors"
+                          className="bg-[#047857] hover:bg-[#065f46] text-white rounded-lg h-9 px-3 flex items-center gap-1.5 text-sm font-semibold transition-colors"
                         >
                           <Check className="w-4 h-4" />
                           Setujui
@@ -273,7 +273,7 @@ export default function AdminIzinPage() {
                         </button>
                       </div>
                     ) : (
-                      <span className="text-sm text-[#76777d] block text-right">
+                      <span className="text-sm text-[#5f636b] block text-right">
                         —
                       </span>
                     )}

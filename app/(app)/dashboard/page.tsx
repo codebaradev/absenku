@@ -45,7 +45,7 @@ export default function AbsenKuDashboard() {
         </h2>
         <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#6cf8bb] text-[#00714d] border border-[#4edea3]/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#6ffbbe] mr-1.5"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#059669] mr-1.5"></span>
             Online
           </span>
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#d3e4fe] text-[#0b1c30] border border-[#c6c6cd]">
@@ -90,11 +90,11 @@ export default function AbsenKuDashboard() {
 
       {/* Tombol Aksi Absensi */}
       <section className="grid grid-cols-2 gap-3 mt-2">
-        <button className="bg-[#10b981] hover:bg-[#059669] text-white rounded-lg h-[64px] flex flex-col items-center justify-center gap-1 shadow-sm active:scale-[0.98] transition-transform w-full">
+        <button className="bg-[#047857] hover:bg-[#065f46] text-white rounded-lg h-[64px] flex flex-col items-center justify-center gap-1 shadow-sm active:scale-[0.98] transition-transform w-full">
           <LogIn className="w-5 h-5 fill-current" />
           <span className="text-sm font-semibold">Absen Masuk</span>
         </button>
-        <button className="bg-white border border-[#c6c6cd] hover:bg-[#eff4ff] text-black rounded-lg h-[64px] flex flex-col items-center justify-center gap-1 active:scale-[0.98] transition-transform w-full">
+        <button className="bg-white border border-[#878a91] hover:bg-[#eff4ff] text-black rounded-lg h-[64px] flex flex-col items-center justify-center gap-1 active:scale-[0.98] transition-transform w-full">
           <LogOut className="w-5 h-5" />
           <span className="text-sm font-medium">Absen Pulang</span>
         </button>
@@ -162,7 +162,7 @@ export default function AbsenKuDashboard() {
                 <span className="text-sm font-medium text-[#45464d]">
                   Pulang
                 </span>
-                <span className="text-[12px] font-semibold text-[#76777d] uppercase tracking-wider mt-0.5">
+                <span className="text-[12px] font-semibold text-[#5f636b] uppercase tracking-wider mt-0.5">
                   Belum Tercatat
                 </span>
               </div>

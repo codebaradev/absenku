@@ -47,11 +47,11 @@ export default function AdminDashboardPage() {
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 md:flex md:gap-3">
-          <button className="bg-white border border-[#c6c6cd] hover:bg-[#eff4ff] text-black rounded-lg h-12 md:h-10 md:px-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm">
+          <button className="bg-white border border-[#878a91] hover:bg-[#eff4ff] text-black rounded-lg h-12 md:h-10 md:px-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm">
             <FileSpreadsheet className="w-5 h-5 text-[#006c49]" />
             <span className="text-sm font-medium">Export Excel</span>
           </button>
-          <button className="bg-white border border-[#c6c6cd] hover:bg-[#eff4ff] text-black rounded-lg h-12 md:h-10 md:px-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm">
+          <button className="bg-white border border-[#878a91] hover:bg-[#eff4ff] text-black rounded-lg h-12 md:h-10 md:px-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm">
             <FileText className="w-5 h-5 text-[#ba1a1a]" />
             <span className="text-sm font-medium">Export PDF</span>
           </button>

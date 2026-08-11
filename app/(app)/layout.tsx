@@ -45,7 +45,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-[#d3e4fe] transition-colors shrink-0"
               aria-label="Tutup banner"
             >
-              <X className="w-4 h-4 text-[#76777d]" />
+              <X className="w-4 h-4 text-[#5f636b]" />
             </button>
           </div>
         )}

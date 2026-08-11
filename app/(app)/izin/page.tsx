@@ -94,7 +94,7 @@ export default function LeaveRequestPage() {
           <p className="text-xs text-[#45464d] mb-1">
             Unggah surat keterangan dokter atau dokumen pendukung lainnya.
           </p>
-          <button className="flex items-center justify-center gap-2 h-12 w-full rounded-lg border-2 border-dashed border-[#c6c6cd] bg-[#f8f9ff] text-sm font-medium text-[#45464d] hover:bg-[#e5eeff] hover:text-[#0b1c30] transition-colors">
+          <button className="flex items-center justify-center gap-2 h-12 w-full rounded-lg border-2 border-dashed border-[#878a91] bg-[#f8f9ff] text-sm font-medium text-[#45464d] hover:bg-[#e5eeff] hover:text-[#0b1c30] transition-colors">
             <Upload className="w-4 h-4" />
             Pilih Dokumen
           </button>
@@ -102,7 +102,7 @@ export default function LeaveRequestPage() {
 
         {/* Submit Action */}
         <div className="pt-2 mt-2">
-          <button className="flex items-center justify-center gap-2 h-[52px] w-full rounded-lg bg-[#10b981] hover:bg-[#059669] text-white text-base font-semibold shadow-sm active:scale-[0.98] transition-transform">
+          <button className="flex items-center justify-center gap-2 h-[52px] w-full rounded-lg bg-[#047857] hover:bg-[#065f46] text-white text-base font-semibold shadow-sm active:scale-[0.98] transition-transform">
             <Send className="w-5 h-5" />
             Kirim Pengajuan
           </button>
@@ -149,7 +149,7 @@ export default function LeaveRequestPage() {
           </Badge>
         </div>
 
-        <button className="w-full text-sm font-medium text-[#10b981] hover:underline">
+        <button className="w-full text-sm font-medium text-[#047857] hover:underline">
           Lihat Semua Riwayat
         </button>
       </section>

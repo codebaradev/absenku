@@ -117,7 +117,7 @@ export default function ProfilePage() {
       </section>
 
       {/* Logout Button */}
-      <button className="w-full min-h-[48px] bg-[#fee2e2] text-[#b91c1c] text-sm font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#fecaca] transition-colors border border-[#fca5a5]">
+      <button className="w-full min-h-[48px] bg-[#fee2e2] text-[#a51818] text-sm font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#fecaca] transition-colors border border-[#e5737e]">
         <LogOut className="w-4 h-4" />
         Keluar Aplikasi
       </button>
