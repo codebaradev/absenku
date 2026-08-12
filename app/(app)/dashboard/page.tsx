@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { MapPin, Map, LogIn, LogOut, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   checkIn,
   checkOut,
@@ -10,6 +11,15 @@ import {
   type AttendanceResult,
 } from "@/lib/actions/attendance";
 import { haversineMeters } from "@/lib/geo";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 type Position = { latitude: number; longitude: number; accuracy: number | null };
 type TodayView = NonNullable<Extract<DashboardData, { ok: true }>["today"]>;
@@ -51,6 +61,7 @@ export default function AbsenKuDashboard() {
   const [currentTime, setCurrentTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
   const [activeTab, setActiveTab] = useState<"today" | "week">("today");
+  const [confirmAction, setConfirmAction] = useState<"in" | "out" | null>(null);
 
   const school = data?.school ?? null;
   const distance =
@@ -269,7 +280,7 @@ export default function AbsenKuDashboard() {
         <button
           type="button"
           disabled={!!today?.checkInTime || pending !== null}
-          onClick={() => handleAction("in")}
+          onClick={() => setConfirmAction("in")}
           className="bg-[#047857] hover:bg-[#065f46] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg h-[64px] flex flex-col items-center justify-center gap-1 shadow-sm active:scale-[0.98] transition-transform w-full"
         >
           {pending === "in" ? (
@@ -284,7 +295,7 @@ export default function AbsenKuDashboard() {
         <button
           type="button"
           disabled={!!today?.checkOutTime || pending !== null}
-          onClick={() => handleAction("out")}
+          onClick={() => setConfirmAction("out")}
           className="bg-white border border-[#878a91] hover:bg-[#eff4ff] text-black rounded-lg h-[64px] flex flex-col items-center justify-center gap-1 active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed w-full"
         >
           {pending === "out" ? (
@@ -375,6 +386,38 @@ export default function AbsenKuDashboard() {
           </div>
         </div>
       </section>
+
+      {/* Modal Konfirmasi Absen */}
+      <Dialog
+        open={confirmAction !== null}
+        onOpenChange={(o) => !o && setConfirmAction(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-[#0b1c30]">
+              {confirmAction === "in" ? "Yakin absen masuk?" : "Yakin absen pulang?"}
+            </DialogTitle>
+            <DialogDescription>
+              Pastikan GPS aktif dan Anda berada di dalam radius sekolah
+              {school ? ` (${school.name})` : ""} sebelum melanjutkan.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>Batal</DialogClose>
+            <Button
+              onClick={() => {
+                const action = confirmAction;
+                setConfirmAction(null);
+                if (action) handleAction(action);
+              }}
+              disabled={pending !== null}
+              className="h-12 rounded-md text-base font-semibold"
+            >
+              {pending ? "Memproses..." : "Ya, Lanjutkan"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

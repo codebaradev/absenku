@@ -5,7 +5,8 @@ import dynamic from "next/dynamic";
 import { LocateFixed, MapPin, Clock, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { updateGeofence, updateSchoolHours, updateSchoolName } from "@/lib/actions/lokasi";
+import { TimeField } from "@/components/time-field";
+import { updateGeofence, updateSchoolHours, updateSchoolName, updateLateTolerance } from "@/lib/actions/lokasi";
 
 const LokasiMap = dynamic(
   () => import("./lokasi-map").then((m) => m.LokasiMap),
@@ -19,6 +20,7 @@ type Props = {
   radiusMeters: number;
   checkInStart: string;
   checkInEnd: string;
+  lateTolerance: number;
 };
 
 const inputClass = "h-12 w-full rounded-lg bg-[#f8f9ff] font-mono";
@@ -34,56 +36,6 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.Re
   );
 }
 
-const selectClass =
-  "h-12 w-16 rounded-lg bg-[#f8f9ff] border border-[#c6c6cd] px-2 font-mono text-[#0b1c30] text-center";
-
-const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
-const MINUTES = Array.from({ length: 60 }, (_, i) => String(i).padStart(2, "0"));
-
-function TimeField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const [h, m] = value.split(":");
-  return (
-    <div className="flex flex-col gap-2">
-      <FieldLabel htmlFor="ciStart">{label}</FieldLabel>
-      <div className="flex items-center gap-2">
-        <select
-          aria-label="Jam"
-          value={h}
-          onChange={(e) => onChange(`${e.target.value}:${m}`)}
-          className={selectClass}
-        >
-          {HOURS.map((x) => (
-            <option key={x} value={x}>
-              {x}
-            </option>
-          ))}
-        </select>
-        <span className="font-mono text-lg text-[#45464d]">:</span>
-        <select
-          aria-label="Menit"
-          value={m}
-          onChange={(e) => onChange(`${h}:${e.target.value}`)}
-          className={selectClass}
-        >
-          {MINUTES.map((x) => (
-            <option key={x} value={x}>
-              {x}
-            </option>
-          ))}
-        </select>
-      </div>
-    </div>
-  );
-}
-
 export function LokasiClient({
   schoolName,
   latitude,
@@ -91,6 +43,7 @@ export function LokasiClient({
   radiusMeters,
   checkInStart,
   checkInEnd,
+  lateTolerance,
 }: Props) {
   const [lat, setLat] = useState(String(latitude));
   const [lng, setLng] = useState(String(longitude));
@@ -114,6 +67,13 @@ export function LokasiClient({
     text: string;
   } | null>(null);
   const [namePending, nameTransition] = useTransition();
+
+  const [tolerance, setTolerance] = useState(String(lateTolerance));
+  const [tolMsg, setTolMsg] = useState<{
+    kind: "ok" | "err";
+    text: string;
+  } | null>(null);
+  const [tolPending, tolTransition] = useTransition();
 
   const latNum = Number(lat);
   const lngNum = Number(lng);
@@ -302,7 +262,78 @@ export function LokasiClient({
           </div>
         </form>
       </div>
-      
+
+      <div className="bg-white border border-[#c6c6cd] rounded-xl p-4 md:p-6 shadow-sm flex flex-col gap-5">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-[#6cf8bb]/30 text-[#006c49] flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[#0b1c30]">
+              Toleransi Keterlambatan
+            </p>
+            <p className="text-[12px] text-[#45464d]">
+              Batas tambahan setelah jam masuk sebelum dihitung terlambat —{" "}
+              {schoolName}
+            </p>
+          </div>
+        </div>
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            setTolMsg(null);
+            tolTransition(async () => {
+              const res = await updateLateTolerance(Number(tolerance));
+              setTolMsg(
+                res.error
+                  ? { kind: "err", text: res.error }
+                  : { kind: "ok", text: res.message ?? "Tersimpan." }
+              );
+            });
+          }}
+          className="flex flex-col gap-4"
+        >
+          <div className="flex flex-col gap-2">
+            <FieldLabel htmlFor="tolerance">Toleransi (menit)</FieldLabel>
+            <Input
+              id="tolerance"
+              type="number"
+              min="0"
+              max="120"
+              step="1"
+              value={tolerance}
+              onChange={(e) => setTolerance(e.target.value)}
+              className="h-12 w-28 rounded-lg bg-[#f8f9ff] font-mono"
+            />
+            <p className="text-[12px] text-[#5f636b]">
+              Misal 10 menit: absen masuk sampai jam masuk + 10 masih dihitung
+              Hadir. 0 = tanpa toleransi.
+            </p>
+          </div>
+
+          {tolMsg && (
+            <p
+              className={`text-sm ${
+                tolMsg.kind === "ok" ? "text-[#00714d]" : "text-[#ba1a1a]"
+              }`}
+            >
+              {tolMsg.text}
+            </p>
+          )}
+
+          <div>
+            <Button
+              type="submit"
+              disabled={tolPending}
+              className="h-12 md:h-10 rounded-md text-sm font-semibold"
+            >
+              {tolPending ? "Menyimpan..." : "Simpan Toleransi"}
+            </Button>
+          </div>
+        </form>
+      </div>
+
       <div className="bg-white border border-[#c6c6cd] rounded-xl p-4 md:p-6 shadow-sm flex flex-col gap-5">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-[#6cf8bb]/30 text-[#006c49] flex items-center justify-center shrink-0">

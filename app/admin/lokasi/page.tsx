@@ -28,6 +28,7 @@ export default async function AdminLokasiPage() {
       radiusMeters={school.radius_meters}
       checkInStart={fmtTime(school.check_in_start) || "07:00"}
       checkInEnd={fmtTime(school.check_in_end) || "15:00"}
+      lateTolerance={school.late_tolerance_minutes}
     />
   );
 }

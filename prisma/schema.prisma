@@ -39,6 +39,7 @@ model School {
   radius_meters  Int
   check_in_start DateTime @db.Time
   check_in_end   DateTime @db.Time
+  late_tolerance_minutes Int @default(0)
 
   users User[]
 

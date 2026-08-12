@@ -30,9 +30,23 @@ import {
 } from "@/components/table-pagination";
 import {
   getAbsensiData,
+  deleteAbsensi,
+  updateAttendance,
   type AbsensiData,
+  type AbsensiRow,
   type AbsensiStatus,
 } from "@/lib/actions/absensi";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { TimeField } from "@/components/time-field";
 
 const STATUS_OPTIONS = [
   { value: "semua", label: "Semua Status" },
@@ -75,6 +89,34 @@ export default function AdminAbsensiPage() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("semua");
   const [pending, setPending] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<
+    { id: string; name: string; kind: "attendance" | "leave" } | null
+  >(null);
+  const [deleting, setDeleting] = useState(false);
+  const [editTarget, setEditTarget] = useState<AbsensiRow | null>(null);
+  const [editIn, setEditIn] = useState("");
+  const [editOut, setEditOut] = useState("");
+  const [editStatus, setEditStatus] = useState<"PRESENT" | "LATE" | "ABSENT">(
+    "PRESENT"
+  );
+  const [saving, setSaving] = useState(false);
+
+  const toHHMM = (iso: string | null) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const h = String(d.getHours()).padStart(2, "0");
+    const m = String(d.getMinutes()).padStart(2, "0");
+    return `${h}:${m}`;
+  };
+  const statusToEnum = (s: AbsensiStatus): "PRESENT" | "LATE" | "ABSENT" =>
+    s === "Hadir" ? "PRESENT" : s === "Terlambat" ? "LATE" : "ABSENT";
+
+  function openEdit(r: AbsensiRow) {
+    setEditTarget(r);
+    setEditIn(toHHMM(r.in));
+    setEditOut(toHHMM(r.out));
+    setEditStatus(statusToEnum(r.status));
+  }
 
   useEffect(() => {
     let mounted = true;
@@ -202,10 +244,20 @@ export default function AdminAbsensiPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <button className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#e5eeff] hover:text-[#0b1c30] transition-colors">
+                    <button
+                      disabled={r.kind === "leave"}
+                      onClick={() => openEdit(r)}
+                      title={r.kind === "leave" ? "Edit absen tidak tersedia untuk izin" : "Edit"}
+                      className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#e5eeff] hover:text-[#0b1c30] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
                       <Pencil className="w-4 h-4" />
                     </button>
-                    <button className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#ffdad6] hover:text-[#b91c1c] transition-colors">
+                    <button
+                      onClick={() =>
+                        setDeleteTarget({ id: r.id, name: r.name, kind: r.kind })
+                      }
+                      className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#ffdad6] hover:text-[#b91c1c] transition-colors"
+                    >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -287,12 +339,26 @@ export default function AdminAbsensiPage() {
                     </TableCell>
                     <TableCell className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
-                        <button className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#e5eeff] hover:text-[#0b1c30] transition-colors">
+                        <button
+                          disabled={r.kind === "leave"}
+                          onClick={() => openEdit(r)}
+                          title={r.kind === "leave" ? "Edit absen tidak tersedia untuk izin" : "Edit"}
+                          className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#e5eeff] hover:text-[#0b1c30] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
                           <Pencil className="w-4 h-4" />
                         </button>
-                        <button className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#ffdad6] hover:text-[#b91c1c] transition-colors">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                         <button
+                           onClick={() =>
+                             setDeleteTarget({
+                               id: r.id,
+                               name: r.name,
+                               kind: r.kind,
+                             })
+                           }
+                           className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#ffdad6] hover:text-[#b91c1c] transition-colors"
+                         >
+                           <Trash2 className="w-4 h-4" />
+                         </button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -308,6 +374,134 @@ export default function AdminAbsensiPage() {
           </section>
         </>
       )}
+
+      {/* Modal Konfirmasi Hapus */}
+      <Dialog
+        open={deleteTarget !== null}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-[#0b1c30]">
+              Hapus data absensi?
+            </DialogTitle>
+            <DialogDescription>
+              Data absensi {deleteTarget?.name ? `atas nama ${deleteTarget.name} ` : ""}
+              akan dihapus secara permanen dan tidak dapat dikembalikan.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>Batal</DialogClose>
+            <Button
+              disabled={deleting}
+              onClick={async () => {
+                if (!deleteTarget) return;
+                setDeleting(true);
+                const res = await deleteAbsensi(
+                  deleteTarget.id,
+                  deleteTarget.kind
+                );
+                setDeleting(false);
+                if (res.error) {
+                  setError(res.error);
+                  setDeleteTarget(null);
+                  return;
+                }
+                setDeleteTarget(null);
+                const refreshed = await getAbsensiData(data!.selected);
+                if (refreshed.ok) setData(refreshed);
+                else setError(refreshed.error);
+              }}
+              className="h-12 rounded-md text-base font-semibold bg-[#b91c1c] hover:bg-[#991b1b] text-white"
+            >
+              {deleting ? "Menghapus..." : "Ya, Hapus"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal Edit Absensi */}
+      <Dialog
+        open={editTarget !== null}
+        onOpenChange={(o) => !o && setEditTarget(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-base font-semibold text-[#0b1c30]">
+              Edit Absensi
+            </DialogTitle>
+            <DialogDescription>
+              {editTarget?.name} — {editTarget ? fmtDate(editTarget.date) : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4">
+            <div className="grid grid-cols-2 gap-3">
+              <TimeField
+                label="Jam Masuk"
+                value={editIn}
+                onChange={setEditIn}
+              />
+              <TimeField
+                label="Jam Pulang"
+                value={editOut}
+                onChange={setEditOut}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label className="text-[12px] font-semibold uppercase tracking-wider text-[#45464d]">
+                Status
+              </label>
+              <Select
+                value={editStatus}
+                onValueChange={(v) =>
+                  setEditStatus(v as "PRESENT" | "LATE" | "ABSENT")
+                }
+              >
+                <SelectTrigger className={selectClass}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PRESENT">Hadir</SelectItem>
+                  <SelectItem value="LATE">Terlambat</SelectItem>
+                  <SelectItem value="ABSENT">Alpa</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>Batal</DialogClose>
+            <Button
+              disabled={saving}
+              onClick={async () => {
+                if (!editTarget) return;
+                setSaving(true);
+                const res = await updateAttendance({
+                  id: editTarget.id,
+                  checkIn: editIn || null,
+                  checkOut: editOut || null,
+                  status: editStatus,
+                });
+                setSaving(false);
+                if (res.error) {
+                  setError(res.error);
+                  setEditTarget(null);
+                  return;
+                }
+                setEditTarget(null);
+                const refreshed = await getAbsensiData(data!.selected);
+                if (refreshed.ok) setData(refreshed);
+                else setError(refreshed.error);
+              }}
+              className="h-12 rounded-md text-base font-semibold"
+            >
+              {saving ? "Menyimpan..." : "Simpan"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -12,6 +12,7 @@ type Geofence = {
   longitude: number;
   radiusMeters: number;
   checkInStart: Date;
+  lateTolerance: number;
 };
 
 const todayUtc = () => {
@@ -53,6 +54,7 @@ export async function getDashboardData(): Promise<DashboardData> {
             longitude: school.longitude.toNumber(),
             radiusMeters: school.radius_meters,
             checkInStart: school.check_in_start,
+            lateTolerance: school.late_tolerance_minutes,
           }
         : null,
       today: attendance
@@ -94,6 +96,7 @@ async function checkGeofence(
     longitude: school.longitude.toNumber(),
     radiusMeters: school.radius_meters,
     checkInStart: school.check_in_start,
+    lateTolerance: school.late_tolerance_minutes,
   };
 
   const distance = haversineMeters(
@@ -129,10 +132,15 @@ export async function checkIn(
       return { ok: false, error: "Anda sudah absen masuk hari ini." };
 
     const now = new Date();
+    // ponytail: check_in_start menyimpan waktu lokal di field UTC, jadi bandingkan
+    // dengan waktu lokal `now` yang di-encode ke field UTC yang sama.
+    const nowLocal = new Date(
+      Date.UTC(1970, 0, 1, now.getHours(), now.getMinutes())
+    );
+    const limit =
+      minutesUtc(geofence.school.checkInStart) + geofence.school.lateTolerance;
     const status: AttendanceStatus =
-      minutesUtc(now) <= minutesUtc(geofence.school.checkInStart)
-        ? "PRESENT"
-        : "LATE";
+      minutesUtc(nowLocal) <= limit ? "PRESENT" : "LATE";
 
     const created = existing
       ? await prisma.attendance.update({

@@ -72,3 +72,21 @@ export async function updateSchoolName(name: string): Promise<GeofenceResult> {
   revalidatePath("/admin/lokasi");
   return { message: "Nama sekolah berhasil disimpan." };
 }
+
+export async function updateLateTolerance(
+  minutes: number
+): Promise<GeofenceResult> {
+  if (!Number.isInteger(minutes) || minutes < 0 || minutes > 120)
+    return { error: "Toleransi harus 0–120 menit." };
+
+  const school = await prisma.school.findFirst();
+  if (!school) return { error: "Belum ada data sekolah." };
+
+  await prisma.school.update({
+    where: { id: school.id },
+    data: { late_tolerance_minutes: minutes },
+  });
+
+  revalidatePath("/admin/lokasi");
+  return { message: "Toleransi keterlambatan berhasil disimpan." };
+}

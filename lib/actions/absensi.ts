@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 import { getMonthOptions, parseMonth } from "@/lib/date-utils";
@@ -82,6 +83,61 @@ export async function getAbsensiData(month?: string): Promise<AbsensiData> {
     return {
       ok: false,
       error: e instanceof Error ? e.message : "Gagal memuat data absensi.",
+    };
+  }
+}
+
+export async function deleteAbsensi(
+  id: string,
+  kind: "attendance" | "leave"
+): Promise<{ error?: string }> {
+  try {
+    await requireAdmin();
+    if (kind === "attendance") {
+      await prisma.attendance.delete({ where: { id } });
+    } else {
+      await prisma.leaveRequest.delete({ where: { id } });
+    }
+    revalidatePath("/admin/absensi");
+    return {};
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "Gagal menghapus data.",
+    };
+  }
+}
+
+export async function updateAttendance(input: {
+  id: string;
+  checkIn: string | null;
+  checkOut: string | null;
+  status: "PRESENT" | "LATE" | "ABSENT";
+}): Promise<{ error?: string }> {
+  try {
+    await requireAdmin();
+    const att = await prisma.attendance.findUnique({ where: { id: input.id } });
+    if (!att) return { error: "Data absensi tidak ditemukan." };
+
+    const d = new Date(att.date);
+    const toTs = (v: string | null): Date | null => {
+      if (!v) return null;
+      const [h, m] = v.split(":").map(Number);
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate(), h, m);
+    };
+
+    await prisma.attendance.update({
+      where: { id: input.id },
+      data: {
+        check_in_time: toTs(input.checkIn),
+        check_out_time: toTs(input.checkOut),
+        status: input.status,
+      },
+    });
+    revalidatePath("/admin/absensi");
+    return {};
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "Gagal menyimpan perubahan.",
     };
   }
 }
