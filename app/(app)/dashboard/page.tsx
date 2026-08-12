@@ -7,8 +7,10 @@ import {
   checkIn,
   checkOut,
   getDashboardData,
+  getWeekAttendance,
   type DashboardData,
   type AttendanceResult,
+  type WeekAttendance,
 } from "@/lib/actions/attendance";
 import { haversineMeters } from "@/lib/geo";
 import {
@@ -40,6 +42,12 @@ function fmtHM(d: Date | null | undefined): string {
   ).padStart(2, "0")}`;
 }
 
+function fmtRange(start: Date | null | undefined, toleranceMin: number): string {
+  if (!start) return "--:--";
+  const end = new Date(start.getTime() + toleranceMin * 60000);
+  return `${fmtHM(start)} - ${fmtHM(end)}`;
+}
+
 function getPosition(): Promise<Position | null> {
   return new Promise((resolve) => {
     if (!navigator.geolocation) return resolve(null);
@@ -68,7 +76,13 @@ export default function AbsenKuDashboard() {
   const [currentTime, setCurrentTime] = useState("");
   const [currentDate, setCurrentDate] = useState("");
   const [activeTab, setActiveTab] = useState<"today" | "week">("today");
+  const [week, setWeek] = useState<WeekAttendance[] | null>(null);
   const [confirmAction, setConfirmAction] = useState<"in" | "out" | null>(null);
+
+  useEffect(() => {
+    if (activeTab === "week" && week === null)
+      getWeekAttendance().then(setWeek);
+  }, [activeTab, week]);
 
   const school = data?.school ?? null;
   const distance =
@@ -290,35 +304,27 @@ export default function AbsenKuDashboard() {
       {/* Aturan Absensi */}
       <section className="bg-white border border-[#c6c6cd] rounded-xl p-4 flex flex-col gap-3 shadow-sm">
         <h3 className="text-sm font-semibold text-[#0b1c30]">Aturan Absensi</h3>
-        <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="grid grid-cols-2 gap-2 text-center">
           <div className="flex flex-col gap-1">
-            <span className="text-[12px] font-semibold uppercase tracking-wider text-[#45464d]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#45464d]">
               Jam Masuk
             </span>
             <span className="font-mono text-base font-semibold text-[#0b1c30]">
-              {fmtHM(school?.checkInStart)}
+              {fmtRange(school?.checkInStart, school?.lateTolerance ?? 0)}
             </span>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[12px] font-semibold uppercase tracking-wider text-[#45464d]">
+          <div className="flex flex-col gap-1 border-l border-[#c6c6cd]">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#45464d]">
               Jam Pulang
             </span>
             <span className="font-mono text-base font-semibold text-[#0b1c30]">
               {fmtHM(school?.checkInEnd)}
             </span>
           </div>
-          <div className="flex flex-col gap-1">
-            <span className="text-[12px] font-semibold uppercase tracking-wider text-[#45464d]">
-              Toleransi
-            </span>
-            <span className="font-mono text-base font-semibold text-[#0b1c30]">
-              {school ? `${school.lateTolerance} mnt` : "--"}
-            </span>
-          </div>
         </div>
-        <p className="text-[12px] text-[#5f636b]">
+        {/* <p className="text-[12px] text-[#5f636b]">
           Absen masuk lewat jam masuk + toleransi dihitung terlambat.
-        </p>
+        </p> */}
       </section>
 
       {/* Tombol Aksi Absensi */}
@@ -381,55 +387,124 @@ export default function AbsenKuDashboard() {
           </button>
         </div>
 
-        {/* List Item Presensi Hari Ini */}
+        {/* List Item Presensi */}
         <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-semibold text-[#0b1c30] mb-1">
-            Presensi Hari Ini
-          </h3>
+          {activeTab === "today" ? (
+            <>
+              <h3 className="text-sm font-semibold text-[#0b1c30] mb-1">
+                Presensi Hari Ini
+              </h3>
 
-          {/* Item Card - Absen Masuk */}
-          <div className="bg-white border border-[#c6c6cd] rounded-lg p-3 flex justify-between items-center shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-[#6cf8bb]/30 text-[#006c49] flex items-center justify-center shrink-0">
-                <LogIn className="w-5 h-5 fill-current" />
+              {/* Item Card - Absen Masuk */}
+              <div className="bg-white border border-[#c6c6cd] rounded-lg p-3 flex justify-between items-center shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-[#6cf8bb]/30 text-[#006c49] flex items-center justify-center shrink-0">
+                    <LogIn className="w-5 h-5 fill-current" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-[#0b1c30]">Masuk</span>
+                    <span className="text-[12px] font-semibold text-[#45464d] uppercase tracking-wider mt-0.5">
+                      {today?.checkInTime
+                        ? today.status === "PRESENT"
+                          ? "Tepat Waktu"
+                          : "Terlambat"
+                        : "Belum Tercatat"}
+                    </span>
+                  </div>
+                </div>
+                <div className="font-mono text-sm font-semibold text-[#0b1c30]">
+                  {formatClock(today?.checkInTime) ?? "--:--"}
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-[#0b1c30]">Masuk</span>
-                <span className="text-[12px] font-semibold text-[#45464d] uppercase tracking-wider mt-0.5">
-                  {today?.checkInTime
-                    ? today.status === "PRESENT"
-                      ? "Tepat Waktu"
-                      : "Terlambat"
-                    : "Belum Tercatat"}
-                </span>
-              </div>
-            </div>
-            <div className="font-mono text-sm font-semibold text-[#0b1c30]">
-              {formatClock(today?.checkInTime) ?? "--:--"}
-            </div>
-          </div>
 
-          {/* Item Card - Absen Pulang */}
-          <div
-            className={`bg-white border rounded-lg p-3 flex justify-between items-center ${
-              today?.checkOutTime ? "border-[#c6c6cd] shadow-sm" : "border-[#c6c6cd] border-dashed opacity-60"
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-[#e5eeff] text-[#45464d] flex items-center justify-center shrink-0">
-                <LogOut className="w-5 h-5" />
+              {/* Item Card - Absen Pulang */}
+              <div
+                className={`bg-white border rounded-lg p-3 flex justify-between items-center ${
+                  today?.checkOutTime ? "border-[#c6c6cd] shadow-sm" : "border-[#c6c6cd] border-dashed opacity-60"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-[#e5eeff] text-[#45464d] flex items-center justify-center shrink-0">
+                    <LogOut className="w-5 h-5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-[#0b1c30]">Pulang</span>
+                    <span className="text-[12px] font-semibold text-[#5f636b] uppercase tracking-wider mt-0.5">
+                      {today?.checkOutTime ? "Tercatat" : "Belum Tercatat"}
+                    </span>
+                  </div>
+                </div>
+                <div className="font-mono text-sm text-[#0b1c30]">
+                  {formatClock(today?.checkOutTime) ?? "--:--"}
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-[#0b1c30]">Pulang</span>
-                <span className="text-[12px] font-semibold text-[#5f636b] uppercase tracking-wider mt-0.5">
-                  {today?.checkOutTime ? "Tercatat" : "Belum Tercatat"}
-                </span>
-              </div>
-            </div>
-            <div className="font-mono text-sm text-[#0b1c30]">
-              {formatClock(today?.checkOutTime) ?? "--:--"}
-            </div>
-          </div>
+            </>
+          ) : (
+            <>
+              <h3 className="text-sm font-semibold text-[#0b1c30] mb-1">
+                Presensi Minggu Ini
+              </h3>
+              {week === null ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="w-5 h-5 animate-spin text-[#45464d]" />
+                </div>
+              ) : week.length === 0 ? (
+                <p className="text-sm text-[#5f636b] text-center py-6">
+                  Belum ada presensi minggu ini.
+                </p>
+              ) : (
+                Array.from({ length: 7 }).map((_, i) => {
+                  const d = new Date();
+                  const day = d.getUTCDay() || 7;
+                  const monday = new Date(
+                    Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - (day - 1) + i)
+                  );
+                  const iso = monday.toISOString();
+                  const w = week.find((x) => x.date === iso) ?? null;
+                  return (
+                    <div
+                      key={iso}
+                      className="bg-white border border-[#c6c6cd] rounded-lg p-3 flex justify-between items-center shadow-sm"
+                    >
+                      <div className="flex gap-4 justify-center items-center ">
+                        <div className="flex flex-col items-center gap-1 shrink-0">
+                          <div className="h-10 w-10 rounded-full bg-[#e5eeff] text-[#45464d] flex items-center justify-center text-[11px] font-semibold uppercase">
+                            {monday.toLocaleDateString("id-ID", {
+                              weekday: "short",
+                              timeZone: "UTC",
+                            })}
+                          </div>
+                          <span className="text-[11px] font-medium text-[#45464d]">
+                            {monday.toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "short",
+                              timeZone: "UTC",
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-sm font-medium text-[#0b1c30]">
+                              {w?.checkInTime
+                                ? w.status === "PRESENT"
+                                  ? "Tepat Waktu"
+                                  : "Terlambat"
+                                : "Tidak Absen"}
+                            </span>
+                            <span className="text-[12px] font-semibold text-[#5f636b] uppercase tracking-wider mt-0.5">
+                              {w?.checkOutTime ? "Pulang Tercatat" : "Belum Pulang"}
+                            </span>
+                          </div>
+                      </div>
+
+                      <div className="font-mono text-sm font-semibold text-[#0b1c30]">
+                        {formatClock(w?.checkInTime) ?? "--:--"}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </>
+          )}
         </div>
       </section>
 

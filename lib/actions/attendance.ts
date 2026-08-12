@@ -180,6 +180,35 @@ export async function checkIn(
   }
 }
 
+export type WeekAttendance = {
+  date: string;
+  checkInTime: string | null;
+  checkOutTime: string | null;
+  status: AttendanceStatus | null;
+};
+
+export async function getWeekAttendance(): Promise<WeekAttendance[]> {
+  const user = await requireUser();
+  const now = new Date();
+  const day = now.getUTCDay() || 7; // Minggu = 7
+  const monday = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - (day - 1))
+  );
+  const sunday = new Date(
+    Date.UTC(monday.getUTCFullYear(), monday.getUTCMonth(), monday.getUTCDate() + 7)
+  );
+  const rows = await prisma.attendance.findMany({
+    where: { user_id: user.id, date: { gte: monday, lt: sunday } },
+    orderBy: { date: "asc" },
+  });
+  return rows.map((r) => ({
+    date: r.date.toISOString(),
+    checkInTime: r.check_in_time?.toISOString() ?? null,
+    checkOutTime: r.check_out_time?.toISOString() ?? null,
+    status: r.status,
+  }));
+}
+
 export async function checkOut(
   latitude: number,
   longitude: number
