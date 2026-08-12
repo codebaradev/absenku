@@ -1,0 +1,31 @@
+import type { MetadataRoute } from "next";
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "AbsenKu",
+    short_name: "AbsenKu",
+    description: "PWA kehadiran guru berbasis geofence GPS",
+    start_url: "/dashboard",
+    display: "standalone",
+    background_color: "#f8f9ff",
+    theme_color: "#0b1c30",
+    icons: [
+      {
+        src: "/icons/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        src: "/icons/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+      },
+      {
+        src: "/icons/icon-maskable-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
+      },
+    ],
+  };
+}

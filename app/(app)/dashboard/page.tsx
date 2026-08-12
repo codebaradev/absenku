@@ -11,7 +11,7 @@ import {
 } from "@/lib/actions/attendance";
 import { haversineMeters } from "@/lib/geo";
 
-type Position = { latitude: number; longitude: number };
+type Position = { latitude: number; longitude: number; accuracy: number | null };
 type TodayView = NonNullable<Extract<DashboardData, { ok: true }>["today"]>;
 
 function formatClock(iso: string | null | undefined) {
@@ -31,6 +31,9 @@ function getPosition(): Promise<Position | null> {
         resolve({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude,
+          accuracy: Number.isFinite(pos.coords.accuracy)
+            ? pos.coords.accuracy
+            : null,
         }),
       () => resolve(null),
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -59,6 +62,8 @@ export default function AbsenKuDashboard() {
           school.longitude
         )
       : null;
+  const lowAccuracy =
+    position?.accuracy != null && school && position.accuracy > school.radiusMeters;
 
   useEffect(() => {
     getDashboardData().then((res) => {
@@ -167,7 +172,9 @@ export default function AbsenKuDashboard() {
       ? "Mengambil lokasi..."
       : inRadius
         ? `Di Dalam Radius ${Math.round(distance)}m`
-        : `Di Luar Radius ${Math.round(distance)}m`;
+        : lowAccuracy
+          ? "Akurasi GPS rendah, jarak tidak akurat"
+          : `Di Luar Radius ${Math.round(distance)}m`;
 
   return (
     <>
@@ -239,6 +246,17 @@ export default function AbsenKuDashboard() {
         <div className="text-sm text-[#0b1c30]">
           {school ? school.name : "Sekolah belum diatur"}
         </div>
+        {position?.accuracy != null && (
+          <p
+            className={`text-[12px] font-medium ${
+              lowAccuracy ? "text-[#b45309]" : "text-[#5f636b]"
+            }`}
+          >
+            Akurasi GPS ±{Math.round(position.accuracy)}m
+            {lowAccuracy &&
+              " — akurasi rendah, aktifkan GPS & memakai HP agar jarak akurat"}
+          </p>
+        )}
 
         {/* Visualisasi Peta Latar Belakang */}
         <div className="absolute -right-6 -bottom-8 w-32 h-32 opacity-10 pointer-events-none">
