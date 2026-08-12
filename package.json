@@ -10,6 +10,7 @@
     "lint": "eslint",
     "db:seed:admin": "node prisma/seeders/seed-admin.mjs",
     "db:seed:teachers": "node prisma/seeders/seed-teachers.mjs",
+    "db:seed:principals": "node prisma/seeders/seed-principals.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {

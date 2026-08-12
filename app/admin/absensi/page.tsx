@@ -84,7 +84,11 @@ function fmtTime(iso: string | null): string {
   });
 }
 
-export default function AdminAbsensiPage() {
+export default function AdminAbsensiPage({
+  editable = true,
+}: {
+  editable?: boolean;
+}) {
   const [data, setData] = useState<Extract<AbsensiData, { ok: true }> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState("semua");
@@ -244,22 +248,26 @@ export default function AdminAbsensiPage() {
                     </span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      disabled={r.kind === "leave"}
-                      onClick={() => openEdit(r)}
-                      title={r.kind === "leave" ? "Edit absen tidak tersedia untuk izin" : "Edit"}
-                      className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#e5eeff] hover:text-[#0b1c30] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() =>
-                        setDeleteTarget({ id: r.id, name: r.name, kind: r.kind })
-                      }
-                      className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#ffdad6] hover:text-[#b91c1c] transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {editable && (
+                      <>
+                        <button
+                          disabled={r.kind === "leave"}
+                          onClick={() => openEdit(r)}
+                          title={r.kind === "leave" ? "Edit absen tidak tersedia untuk izin" : "Edit"}
+                          className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#e5eeff] hover:text-[#0b1c30] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() =>
+                            setDeleteTarget({ id: r.id, name: r.name, kind: r.kind })
+                          }
+                          className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#ffdad6] hover:text-[#b91c1c] transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -338,28 +346,30 @@ export default function AdminAbsensiPage() {
                       </span>
                     </TableCell>
                     <TableCell className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        <button
-                          disabled={r.kind === "leave"}
-                          onClick={() => openEdit(r)}
-                          title={r.kind === "leave" ? "Edit absen tidak tersedia untuk izin" : "Edit"}
-                          className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#e5eeff] hover:text-[#0b1c30] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                         <button
-                           onClick={() =>
-                             setDeleteTarget({
-                               id: r.id,
-                               name: r.name,
-                               kind: r.kind,
-                             })
-                           }
-                           className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#ffdad6] hover:text-[#b91c1c] transition-colors"
-                         >
-                           <Trash2 className="w-4 h-4" />
-                         </button>
-                      </div>
+                      {editable && (
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            disabled={r.kind === "leave"}
+                            onClick={() => openEdit(r)}
+                            title={r.kind === "leave" ? "Edit absen tidak tersedia untuk izin" : "Edit"}
+                            className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#e5eeff] hover:text-[#0b1c30] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                           <button
+                              onClick={() =>
+                                setDeleteTarget({
+                                  id: r.id,
+                                  name: r.name,
+                                  kind: r.kind,
+                                })
+                              }
+                              className="h-8 w-8 flex items-center justify-center rounded-lg text-[#45464d] hover:bg-[#ffdad6] hover:text-[#b91c1c] transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -16,6 +16,7 @@ const HOME_BY_ROLE = {
   ADMIN: "/admin",
   TEACHER: "/dashboard",
   STAFF: "/dashboard",
+  KEPALA_SEKOLAH: "/dashboard",
 } as const;
 
 export async function login(

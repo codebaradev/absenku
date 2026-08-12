@@ -32,6 +32,7 @@ const ROLE_LABELS: Record<Role, string> = {
   TEACHER: "Guru",
   ADMIN: "Admin",
   STAFF: "Staf",
+  KEPALA_SEKOLAH: "Kepala Sekolah",
 };
 
 const inputClass = "h-12 w-full rounded-lg bg-[#f8f9ff]";

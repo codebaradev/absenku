@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/session";
+import { requireSupervisor } from "@/lib/session";
 import type { LeaveType } from "@prisma/client";
 
 export type AdminLeaveType = "Sakit" | "Izin" | "Cuti";
@@ -37,7 +37,7 @@ const STATUS_MAP: Record<"PENDING" | "APPROVED" | "REJECTED", AdminLeaveStatus> 
 
 export async function getAdminLeaveRequests(): Promise<AdminLeaveData> {
   try {
-    await requireAdmin();
+    await requireSupervisor();
     const items = await prisma.leaveRequest.findMany({
       include: { user: { select: { full_name: true } } },
       orderBy: { created_at: "desc" },
@@ -66,7 +66,7 @@ export async function setLeaveStatus(
   id: string,
   status: "APPROVED" | "REJECTED"
 ): Promise<{ error?: string }> {
-  const admin = await requireAdmin();
+  const admin = await requireSupervisor();
   if (status !== "APPROVED" && status !== "REJECTED")
     return { error: "Status tidak valid." };
 

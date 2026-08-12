@@ -55,3 +55,10 @@ export async function requireTeacher() {
   if (user.role === "ADMIN") redirect("/admin");
   return user;
 }
+
+export async function requireSupervisor() {
+  const user = await requireUser();
+  if (user.role !== "ADMIN" && user.role !== "KEPALA_SEKOLAH")
+    redirect("/dashboard");
+  return user;
+}

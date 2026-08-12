@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { requireAdmin } from "@/lib/session";
+import { requireAdmin, requireSupervisor } from "@/lib/session";
 import { getMonthOptions, parseMonth } from "@/lib/date-utils";
 
 export type AbsensiStatus = "Hadir" | "Terlambat" | "Izin" | "Sakit" | "Alpa";
@@ -31,7 +31,7 @@ const attendanceStatus = (s: "PRESENT" | "LATE" | "ABSENT"): AbsensiStatus =>
 
 export async function getAbsensiData(month?: string): Promise<AbsensiData> {
   try {
-    await requireAdmin();
+    await requireSupervisor();
     const months = getMonthOptions();
     const selected =
       month && months.some((m) => m.value === month) ? month : months[0].value;

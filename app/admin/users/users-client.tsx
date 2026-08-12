@@ -53,6 +53,7 @@ const ROLE_LABELS: Record<Role, string> = {
   TEACHER: "Guru",
   ADMIN: "Admin",
   STAFF: "Staff",
+  KEPALA_SEKOLAH: "Kepala Sekolah",
 };
 
 const ROLE_OPTIONS = (Object.keys(ROLE_LABELS) as Role[]).map((r) => ({
@@ -64,6 +65,7 @@ const ROLE_BADGES: Record<Role, string> = {
   TEACHER: "bg-[#e5eeff] text-[#0b1c30] border border-[#c6c6cd]",
   ADMIN: "bg-[#6cf8bb]/40 text-[#00714d] border border-[#4edea3]/30",
   STAFF: "bg-black text-white",
+  KEPALA_SEKOLAH: "bg-[#d3e4fe] text-[#0b1c30] border border-[#c6c6cd]",
 };
 
 type FormState = {

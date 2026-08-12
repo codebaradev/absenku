@@ -10,6 +10,7 @@ enum Role {
   ADMIN
   TEACHER
   STAFF
+  KEPALA_SEKOLAH
 }
 
 enum AttendanceStatus {

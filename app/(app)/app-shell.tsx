@@ -10,8 +10,11 @@ import {
   FileText,
   User,
   LogOut,
+  CalendarCheck,
+  CalendarClock,
 } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
+import type { Role } from "@prisma/client";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Beranda", icon: Home },
@@ -20,12 +23,19 @@ const NAV_ITEMS = [
   { href: "/profile", label: "Profil", icon: User },
 ];
 
+const SUPERVISOR_NAV = [
+  { href: "/persetujuan", label: "Persetujuan", icon: CalendarCheck },
+  { href: "/absensi", label: "Absensi", icon: CalendarClock },
+];
+
 export function AppShell({
   children,
   fullName,
+  role,
 }: {
   children: React.ReactNode;
   fullName: string;
+  role: Role;
 }) {
   const initials = fullName
     .split(" ")
@@ -34,6 +44,8 @@ export function AppShell({
     .join("")
     .toUpperCase();
   const pathname = usePathname();
+  const navItems =
+    role === "KEPALA_SEKOLAH" ? [...NAV_ITEMS, ...SUPERVISOR_NAV] : NAV_ITEMS;
 
   return (
     <div className="bg-[#f8f9ff] text-[#0b1c30] min-h-screen font-sans antialiased overflow-hidden flex justify-center">
@@ -70,7 +82,7 @@ export function AppShell({
 
         {/* Bottom Navigation Bar */}
         <nav className="bg-white border-t border-[#c6c6cd] fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-50 flex justify-around items-center px-2 py-2">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+          {navItems.map(({ href, label, icon: Icon }) => {
             const active = pathname === href;
             return (
               <Link
