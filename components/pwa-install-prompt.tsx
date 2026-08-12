@@ -15,7 +15,12 @@ const isStandalone = () =>
       true);
 
 export function PwaInstallPrompt() {
-  const [deferred, setDeferred] = useState<InstallEvent | null>(null);
+  const [deferred, setDeferred] = useState<InstallEvent | null>(
+    () =>
+      typeof window !== "undefined"
+        ? ((window as { __pwaPrompt?: InstallEvent }).__pwaPrompt ?? null)
+        : null
+  );
   const [installed, setInstalled] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
@@ -41,6 +46,7 @@ export function PwaInstallPrompt() {
   const install = async () => {
     await deferred.prompt();
     if ((await deferred.userChoice).outcome === "accepted") setInstalled(true);
+    (window as { __pwaPrompt?: InstallEvent }).__pwaPrompt = undefined;
     setDeferred(null);
   };
 
