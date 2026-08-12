@@ -120,7 +120,8 @@ async function checkGeofence(
 
 export async function checkIn(
   latitude: number,
-  longitude: number
+  longitude: number,
+  clientMinutes: number
 ): Promise<AttendanceResult> {
   try {
     const user = await requireUser();
@@ -135,22 +136,13 @@ export async function checkIn(
       return { ok: false, error: "Anda sudah absen masuk hari ini." };
 
     const now = new Date();
-    // ponytail: server bisa UTC (Vercel). WIB = UTC+7. check_in_start menyimpan
-    // waktu WIB di field UTC, jadi ubah `now` ke WIB lalu encode ke field UTC yang sama.
-    const WIB = 7;
-    const nowWib = new Date(
-      Date.UTC(
-        1970,
-        0,
-        1,
-        (now.getUTCHours() + WIB) % 24,
-        now.getUTCMinutes()
-      )
-    );
+    // ponytail: bandingkan dengan waktu lokal perangkat guru (clientMinutes)
+    // agar tidak bergantung zona server. check_in_start menyimpan waktu lokal
+    // di field UTC, sehingga langsung sebanding.
+    const mins = Number.isFinite(clientMinutes) ? clientMinutes : 0;
     const limit =
       minutesUtc(geofence.school.checkInStart) + geofence.school.lateTolerance;
-    const status: AttendanceStatus =
-      minutesUtc(nowWib) <= limit ? "PRESENT" : "LATE";
+    const status: AttendanceStatus = mins <= limit ? "PRESENT" : "LATE";
 
     const created = existing
       ? await prisma.attendance.update({

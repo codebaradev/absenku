@@ -155,8 +155,13 @@ export default function AbsenKuDashboard() {
     }
 
     setPending(action);
+    const clientNow = new Date();
+    const clientMinutes =
+      clientNow.getHours() * 60 + clientNow.getMinutes();
     const res: AttendanceResult =
-      action === "in" ? await checkIn(pos.latitude, pos.longitude) : await checkOut(pos.latitude, pos.longitude);
+      action === "in"
+        ? await checkIn(pos.latitude, pos.longitude, clientMinutes)
+        : await checkOut(pos.latitude, pos.longitude);
     setPending(null);
 
     if (res.ok) {
