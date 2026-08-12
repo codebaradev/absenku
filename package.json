@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:seed:admin": "node prisma/seeders/seed-admin.mjs",
-    "db:seed:teachers": "node prisma/seeders/seed-teachers.mjs"
+    "db:seed:teachers": "node prisma/seeders/seed-teachers.mjs",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
