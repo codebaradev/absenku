@@ -12,6 +12,7 @@ type Geofence = {
   longitude: number;
   radiusMeters: number;
   checkInStart: Date;
+  checkInEnd: Date;
   lateTolerance: number;
 };
 
@@ -54,6 +55,7 @@ export async function getDashboardData(): Promise<DashboardData> {
             longitude: school.longitude.toNumber(),
             radiusMeters: school.radius_meters,
             checkInStart: school.check_in_start,
+            checkInEnd: school.check_in_end,
             lateTolerance: school.late_tolerance_minutes,
           }
         : null,
@@ -96,6 +98,7 @@ async function checkGeofence(
     longitude: school.longitude.toNumber(),
     radiusMeters: school.radius_meters,
     checkInStart: school.check_in_start,
+    checkInEnd: school.check_in_end,
     lateTolerance: school.late_tolerance_minutes,
   };
 

@@ -33,6 +33,13 @@ function formatClock(iso: string | null | undefined) {
   });
 }
 
+function fmtHM(d: Date | null | undefined): string {
+  if (!d) return "--:--";
+  return `${String(d.getUTCHours()).padStart(2, "0")}:${String(
+    d.getUTCMinutes()
+  ).padStart(2, "0")}`;
+}
+
 function getPosition(): Promise<Position | null> {
   return new Promise((resolve) => {
     if (!navigator.geolocation) return resolve(null);
@@ -273,6 +280,40 @@ export default function AbsenKuDashboard() {
         <div className="absolute -right-6 -bottom-8 w-32 h-32 opacity-10 pointer-events-none">
           <Map className="w-32 h-32 text-black" />
         </div>
+      </section>
+
+      {/* Aturan Absensi */}
+      <section className="bg-white border border-[#c6c6cd] rounded-xl p-4 flex flex-col gap-3 shadow-sm">
+        <h3 className="text-sm font-semibold text-[#0b1c30]">Aturan Absensi</h3>
+        <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="flex flex-col gap-1">
+            <span className="text-[12px] font-semibold uppercase tracking-wider text-[#45464d]">
+              Jam Masuk
+            </span>
+            <span className="font-mono text-base font-semibold text-[#0b1c30]">
+              {fmtHM(school?.checkInStart)}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[12px] font-semibold uppercase tracking-wider text-[#45464d]">
+              Jam Pulang
+            </span>
+            <span className="font-mono text-base font-semibold text-[#0b1c30]">
+              {fmtHM(school?.checkInEnd)}
+            </span>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[12px] font-semibold uppercase tracking-wider text-[#45464d]">
+              Toleransi
+            </span>
+            <span className="font-mono text-base font-semibold text-[#0b1c30]">
+              {school ? `${school.lateTolerance} mnt` : "--"}
+            </span>
+          </div>
+        </div>
+        <p className="text-[12px] text-[#5f636b]">
+          Absen masuk lewat jam masuk + toleransi dihitung terlambat.
+        </p>
       </section>
 
       {/* Tombol Aksi Absensi */}
