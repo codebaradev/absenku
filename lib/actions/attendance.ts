@@ -132,15 +132,22 @@ export async function checkIn(
       return { ok: false, error: "Anda sudah absen masuk hari ini." };
 
     const now = new Date();
-    // ponytail: check_in_start menyimpan waktu lokal di field UTC, jadi bandingkan
-    // dengan waktu lokal `now` yang di-encode ke field UTC yang sama.
-    const nowLocal = new Date(
-      Date.UTC(1970, 0, 1, now.getHours(), now.getMinutes())
+    // ponytail: server bisa UTC (Vercel). WIB = UTC+7. check_in_start menyimpan
+    // waktu WIB di field UTC, jadi ubah `now` ke WIB lalu encode ke field UTC yang sama.
+    const WIB = 7;
+    const nowWib = new Date(
+      Date.UTC(
+        1970,
+        0,
+        1,
+        (now.getUTCHours() + WIB) % 24,
+        now.getUTCMinutes()
+      )
     );
     const limit =
       minutesUtc(geofence.school.checkInStart) + geofence.school.lateTolerance;
     const status: AttendanceStatus =
-      minutesUtc(nowLocal) <= limit ? "PRESENT" : "LATE";
+      minutesUtc(nowWib) <= limit ? "PRESENT" : "LATE";
 
     const created = existing
       ? await prisma.attendance.update({
