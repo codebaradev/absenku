@@ -73,18 +73,17 @@ export function PwaInstallPrompt() {
 
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-[#0b1c30]">
-          Pasang AbsenKu di layar utama
+          Install Aplikasi AbsenKu
         </p>
         <p className="text-xs text-[#45464d] mt-0.5">
-          Aplikasi belum terpasang. Pasang untuk akses lebih cepat &amp; seperti
-          aplikasi native.
+          Biar cepat dibuka, Install di layar utama HP Bapak/Ibu.
         </p>
         <button
           type="button"
           onClick={install}
           className="mt-2 h-9 px-4 rounded-md bg-[#0b1c30] text-white text-sm font-semibold"
         >
-          Pasang Sekarang
+          Install
         </button>
       </div>
 
