@@ -461,6 +461,11 @@ export default function AbsenKuDashboard() {
                   );
                   const iso = monday.toISOString();
                   const w = week.find((x) => x.date === iso) ?? null;
+                  const tone = !w?.checkInTime
+                    ? "bg-[#e5eeff] text-[#45464d]"
+                    : w.status === "PRESENT"
+                      ? "bg-[#6cf8bb]/30 text-[#006c49]"
+                      : "bg-[#ffe0b2]/50 text-[#b45309]";
                   return (
                     <div
                       key={iso}
@@ -468,7 +473,7 @@ export default function AbsenKuDashboard() {
                     >
                       <div className="flex gap-4 justify-center items-center ">
                         <div className="flex flex-col items-center gap-1 shrink-0">
-                          <div className="h-10 w-10 rounded-full bg-[#e5eeff] text-[#45464d] flex items-center justify-center text-[11px] font-semibold uppercase">
+                          <div className={`h-10 w-10 rounded-full flex items-center justify-center text-[11px] font-semibold uppercase ${tone}`}>
                             {monday.toLocaleDateString("id-ID", {
                               weekday: "short",
                               timeZone: "UTC",
@@ -483,7 +488,7 @@ export default function AbsenKuDashboard() {
                           </span>
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium text-[#0b1c30]">
+                            <span className={`text-sm font-medium`}>
                               {w?.checkInTime
                                 ? w.status === "PRESENT"
                                   ? "Tepat Waktu"
