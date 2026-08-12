@@ -31,7 +31,7 @@ export async function updateSchoolHours(input: {
     data: { check_in_start: start, check_in_end: end },
   });
 
-  revalidatePath("/admin/lokasi");
+  revalidatePath("/admin/pengaturan");
   return { message: "Jam absensi berhasil disimpan." };
 }
 
@@ -56,7 +56,7 @@ export async function updateGeofence(input: {
     data: { latitude, longitude, radius_meters: radiusMeters },
   });
 
-  revalidatePath("/admin/lokasi");
+  revalidatePath("/admin/pengaturan");
   return { message: "Titik lokasi berhasil disimpan." };
 }
 
@@ -69,7 +69,7 @@ export async function updateSchoolName(name: string): Promise<GeofenceResult> {
 
   await prisma.school.update({ where: { id: school.id }, data: { name: trimmed } });
 
-  revalidatePath("/admin/lokasi");
+  revalidatePath("/admin/pengaturan");
   return { message: "Nama sekolah berhasil disimpan." };
 }
 
@@ -87,6 +87,6 @@ export async function updateLateTolerance(
     data: { late_tolerance_minutes: minutes },
   });
 
-  revalidatePath("/admin/lokasi");
+  revalidatePath("/admin/pengaturan");
   return { message: "Toleransi keterlambatan berhasil disimpan." };
 }
