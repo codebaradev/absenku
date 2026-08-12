@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState, useSyncExternalStore } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -38,7 +37,19 @@ function getStandaloneSnapshot() {
   return window.matchMedia("(display-mode: standalone)").matches;
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({
+  children,
+  fullName,
+}: {
+  children: React.ReactNode;
+  fullName: string;
+}) {
+  const initials = fullName
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0] ?? "")
+    .join("")
+    .toUpperCase();
   const [showPwaBanner, setShowPwaBanner] = useState(true);
   const isStandalone = useSyncExternalStore(
     subscribeStandalone,
@@ -115,14 +126,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {/* Top App Bar Header */}
         <header className="bg-[#f8f9ff] border-b border-[#c6c6cd] sticky top-0 left-0 w-full z-40 flex justify-between items-center px-4 h-12 shrink-0 shadow-sm">
           <div className="flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full overflow-hidden border border-[#c6c6cd] shrink-0 bg-[#e5eeff] relative">
-              <Image
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCD95jOUfsON7Td5UA1hwzs6jRvacdc37LdxbuERkAxHd-bRCS8wj0brWZYSmBSNLbgIPODHEjSxHdHg2JRoQDXgz26S_qhNyhYW1vGnG7lmdkWDkYPg-v9gppPIKSoxkXwLRN8L1XeAP1aGx724rNAI1amEVyvEEkfE6TvEHgF6ikIgZkmbjAZyZBUjwNd5KMIQ_dvJRDbvdsLJ8-yxV12M9jk6CEP874T0LbcyNiwUBv1VSffwjo8IQ"
-                alt="Foto profil guru"
-                fill
-                className="object-cover"
-                unoptimized
-              />
+            <div className="h-8 w-8 rounded-full border border-[#c6c6cd] shrink-0 bg-[#e5eeff] flex items-center justify-center text-[13px] font-semibold text-[#0b1c30]">
+              {initials}
             </div>
             <h1 className="text-xl font-bold text-black tracking-tight">
               AbsenKu

@@ -9,7 +9,7 @@ import {
   CalendarCheck,
   CalendarClock,
   Users,
-  MapPin,
+  Settings,
   BellRing,
   LogOut,
 } from "lucide-react";
@@ -20,7 +20,7 @@ const NAV_ITEMS = [
   { href: "/admin/izin", label: "Pengajuan Izin", icon: CalendarCheck },
   { href: "/admin/absensi", label: "Data Absensi", icon: CalendarClock },
   { href: "/admin/users", label: "Kelola Pengguna", icon: Users },
-  { href: "/admin/lokasi", label: "Titik Lokasi", icon: MapPin },
+  { href: "/admin/lokasi", label: "Pengaturan", icon: Settings },
   // { href: "#", label: "Laporan", icon: FileSpreadsheet },
 ];
 

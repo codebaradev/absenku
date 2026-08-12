@@ -6,6 +6,6 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  await requireTeacher();
-  return <AppShell>{children}</AppShell>;
+  const user = await requireTeacher();
+  return <AppShell fullName={user.fullName}>{children}</AppShell>;
 }

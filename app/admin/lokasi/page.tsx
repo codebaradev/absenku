@@ -13,12 +13,21 @@ export default async function AdminLokasiPage() {
     );
   }
 
+  const fmtTime = (d: Date | null) =>
+    d
+      ? `${String(d.getUTCHours()).padStart(2, "0")}:${String(
+          d.getUTCMinutes()
+        ).padStart(2, "0")}`
+      : "";
+
   return (
     <LokasiClient
       schoolName={school.name}
       latitude={school.latitude.toNumber()}
       longitude={school.longitude.toNumber()}
       radiusMeters={school.radius_meters}
+      checkInStart={fmtTime(school.check_in_start) || "07:00"}
+      checkInEnd={fmtTime(school.check_in_end) || "15:00"}
     />
   );
 }
