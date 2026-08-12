@@ -88,16 +88,15 @@ export function AppShell({
               <Link
                 key={label}
                 href={href}
-                className={`flex flex-col items-center justify-center px-4 py-1 transition-all min-w-[48px] min-h-[48px] ${
+                title={label}
+                aria-label={label}
+                className={`flex items-center justify-center px-4 py-1 transition-all min-w-[48px] min-h-[48px] ${
                   active
                     ? "bg-black text-white rounded-full active:scale-90 duration-150"
                     : "text-[#45464d] hover:text-black active:scale-90 duration-150"
                 }`}
               >
                 <Icon className="w-6 h-6" />
-                <span className="text-[10px] uppercase font-semibold tracking-wider mt-0.5">
-                  {label}
-                </span>
               </Link>
             );
           })}

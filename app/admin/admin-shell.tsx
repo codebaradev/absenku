@@ -120,16 +120,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <Link
               key={label}
               href={href}
-              className={`flex flex-col items-center justify-center px-3 py-1 min-w-[48px] min-h-[48px] transition-all ${
+              title={label}
+              aria-label={label}
+              className={`flex items-center justify-center px-3 py-1 min-w-[48px] min-h-[48px] transition-all ${
                 active
                   ? "bg-black text-white rounded-full"
                   : "text-[#45464d] hover:text-[#0b1c30]"
               }`}
             >
               <Icon className="w-5 h-5" />
-              <span className="text-[10px] uppercase font-semibold tracking-wider mt-0.5">
-                {label}
-              </span>
             </Link>
           );
         })}
