@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useActionState } from "react";
 import { GraduationCap, MapPin, CalendarCheck, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { login, type LoginState } from "@/lib/actions/auth";
 
 const FEATURES = [
   { icon: MapPin, text: "Presensi masuk & pulang berbasis lokasi geofence" },
@@ -12,12 +13,10 @@ const FEATURES = [
 ];
 
 export default function LoginPage() {
-  const [nip, setNip] = useState("");
-  const [password, setPassword] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
+  const [state, formAction, isPending] = useActionState<LoginState, FormData>(
+    login,
+    {}
+  );
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] flex flex-col md:flex-row">
@@ -78,21 +77,20 @@ export default function LoginPage() {
           </div>
 
           <form
-            onSubmit={handleSubmit}
+            action={formAction}
             className="bg-white border border-[#c6c6cd] rounded-xl p-6 flex flex-col gap-5 mt-6"
           >
             <div className="flex flex-col gap-2">
               <label
-                htmlFor="nip"
+                htmlFor="identifier"
                 className="text-[12px] font-semibold uppercase tracking-wider text-[#45464d]"
               >
                 NIP / Email
               </label>
               <Input
-                id="nip"
+                id="identifier"
+                name="identifier"
                 type="text"
-                value={nip}
-                onChange={(e) => setNip(e.target.value)}
                 placeholder="Masukkan NIP atau email"
                 className="h-12 w-full rounded-md bg-[#f8f9ff] px-4"
               />
@@ -107,13 +105,18 @@ export default function LoginPage() {
               </label>
               <Input
                 id="password"
+                name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan kata sandi"
                 className="h-12 w-full rounded-md bg-[#f8f9ff] px-4"
               />
             </div>
+
+            {state.error && (
+              <p className="text-sm text-[#ba1a1a]" role="alert">
+                {state.error}
+              </p>
+            )}
 
             <div className="flex items-center justify-between gap-2">
               <label className="flex items-center gap-2 text-sm text-[#0b1c30]">
@@ -128,8 +131,12 @@ export default function LoginPage() {
               </button>
             </div>
 
-            <Button type="submit" className="h-12 w-full rounded-md text-base font-semibold">
-              Masuk
+            <Button
+              type="submit"
+              disabled={isPending}
+              className="h-12 w-full rounded-md text-base font-semibold"
+            >
+              {isPending ? "Memeriksa..." : "Masuk"}
             </Button>
           </form>
 

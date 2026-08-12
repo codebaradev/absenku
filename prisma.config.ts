@@ -5,6 +5,7 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
+    seed: "node prisma/seeders/seed-admin.mjs",
   },
   datasource: {
     url: env("DIRECT_URL"), // Pakai DIRECT_URL untuk migrate
