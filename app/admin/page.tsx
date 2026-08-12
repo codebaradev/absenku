@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { FileSpreadsheet, FileText, BellRing, Users } from "lucide-react";
 import {
   Table,
@@ -8,14 +9,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { prisma } from "@/lib/prisma";
+import type { AttendanceStatus } from "@prisma/client";
 
-const STATS = [
-  { label: "Hadir", value: "18", className: "text-[#006c49]" },
-  { label: "Terlambat", value: "3", className: "text-[#ba1a1a]" },
-  { label: "Izin", value: "2", className: "text-[#0b1c30]" },
-  { label: "Sakit", value: "1", className: "text-[#b45309]" },
-  { label: "Alpa", value: "0", className: "text-[#45464d]" },
-];
+export const dynamic = "force-dynamic";
 
 const STATUS_CLASSES: Record<string, string> = {
   Hadir: "bg-[#6cf8bb] text-[#00714d] border border-[#4edea3]/20",
@@ -25,15 +22,100 @@ const STATUS_CLASSES: Record<string, string> = {
   Alpa: "bg-[#e5eeff] text-[#45464d]",
 };
 
-const ATTENDANCE = [
-  { name: "Budi Santoso, S.Pd", subject: "Fisika", time: "06:50", status: "Hadir" },
-  { name: "Siti Rahayu, M.Pd", subject: "Bahasa Indonesia", time: "06:45", status: "Hadir" },
-  { name: "Ahmad Fauzi, S.Pd", subject: "Matematika", time: "07:15", status: "Terlambat" },
-  { name: "Dewi Lestari, S.Pd", subject: "Biologi", time: "--:--", status: "Sakit" },
-  { name: "Rina Wulandari, S.Pd", subject: "Sejarah", time: "--:--", status: "Izin" },
-];
+type Row = { name: string; time: string | null; status: string };
 
-export default function AdminDashboardPage() {
+const attendanceStatus = (s: AttendanceStatus): string =>
+  s === "PRESENT" ? "Hadir" : s === "LATE" ? "Terlambat" : "Alpa";
+
+function fmtTime(iso: string | null): string {
+  if (!iso) return "--:--";
+  return new Date(iso).toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+export default async function AdminDashboardPage() {
+  const now = new Date();
+  const today = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  );
+  const tomorrow = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1)
+  );
+
+  const [school, totalTeachers, todaysAttendance, todaysLeaves, pendingLeaves, sickCount, izinCount] =
+    await Promise.all([
+      prisma.school.findFirst({ select: { name: true } }),
+      prisma.user.count({
+        where: { role: { in: ["TEACHER", "STAFF"] }, is_active: true },
+      }),
+      prisma.attendance.findMany({
+        where: { date: today },
+        include: { user: { select: { full_name: true } } },
+        orderBy: [{ status: "asc" }, { user: { full_name: "asc" } }],
+      }),
+      prisma.leaveRequest.findMany({
+        where: {
+          approval_status: "APPROVED",
+          start_date: { lt: tomorrow },
+          end_date: { gte: today },
+        },
+        include: { user: { select: { full_name: true } } },
+        orderBy: { user: { full_name: "asc" } },
+      }),
+      prisma.leaveRequest.count({ where: { approval_status: "PENDING" } }),
+      prisma.leaveRequest.count({
+        where: {
+          approval_status: "APPROVED",
+          leave_type: "SICK",
+          start_date: { lt: tomorrow },
+          end_date: { gte: today },
+        },
+      }),
+      prisma.leaveRequest.count({
+        where: {
+          approval_status: "APPROVED",
+          leave_type: { not: "SICK" },
+          start_date: { lt: tomorrow },
+          end_date: { gte: today },
+        },
+      }),
+    ]);
+
+  const hadir = todaysAttendance.filter((a) => a.status === "PRESENT").length;
+  const terlambat = todaysAttendance.filter((a) => a.status === "LATE").length;
+  const alpa = todaysAttendance.filter((a) => a.status === "ABSENT").length;
+
+  const STATS = [
+    { label: "Hadir", value: hadir, className: "text-[#006c49]" },
+    { label: "Terlambat", value: terlambat, className: "text-[#ba1a1a]" },
+    { label: "Izin", value: izinCount, className: "text-[#0b1c30]" },
+    { label: "Sakit", value: sickCount, className: "text-[#b45309]" },
+    { label: "Alpa", value: alpa, className: "text-[#45464d]" },
+  ];
+
+  const rows: Row[] = [
+    ...todaysAttendance.map((a) => ({
+      name: a.user.full_name,
+      time: a.check_in_time?.toISOString() ?? null,
+      status: attendanceStatus(a.status),
+    })),
+    ...todaysLeaves.map((l) => ({
+      name: l.user.full_name,
+      time: null,
+      status: (l.leave_type === "SICK" ? "Sakit" : "Izin") as string,
+    })),
+  ].sort((a, b) => a.name.localeCompare(b.name));
+
+  const dateLabel = now.toLocaleDateString("id-ID", {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
   return (
     <div className="flex flex-col gap-6">
       {/* Page Header + Export */}
@@ -43,7 +125,7 @@ export default function AdminDashboardPage() {
             Dashboard Admin
           </h2>
           <p className="text-sm text-[#45464d]">
-            Rekap kehadiran guru — SMA Negeri 1 · Senin, 23 Okt
+            Rekap kehadiran guru — {school?.name ?? "Sekolah"} · {dateLabel}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 md:flex md:gap-3">
@@ -76,20 +158,23 @@ export default function AdminDashboardPage() {
       </section>
 
       {/* Pending Approvals */}
-      <section className="bg-white border border-[#c6c6cd] rounded-xl p-4 flex items-center gap-3 shadow-sm">
+      <Link
+        href="/admin/izin"
+        className="bg-white border border-[#c6c6cd] rounded-xl p-4 flex items-center gap-3 shadow-sm hover:border-[#878a91] transition-colors"
+      >
         <div className="h-10 w-10 rounded-full bg-[#6cf8bb]/30 text-[#006c49] flex items-center justify-center shrink-0">
           <BellRing className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium text-[#0b1c30]">
-            2 Pengajuan Izin Menunggu
+            {pendingLeaves} Pengajuan Izin Menunggu
           </p>
           <p className="text-[12px] text-[#45464d]">Perlu persetujuan Anda</p>
         </div>
         <button className="bg-black text-white rounded-lg h-10 px-4 text-sm font-semibold hover:bg-[#131b2e] transition-colors shrink-0">
           Tinjau
         </button>
-      </section>
+      </Link>
 
       {/* Attendance - Mobile List */}
       <section className="flex flex-col gap-3 md:hidden">
@@ -97,34 +182,37 @@ export default function AdminDashboardPage() {
           Kehadiran Hari Ini
         </h3>
 
-        {ATTENDANCE.map((a) => (
-          <div
-            key={a.name}
-            className="bg-white border border-[#c6c6cd] rounded-lg p-3 flex items-center justify-between gap-3 shadow-sm"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="h-10 w-10 rounded-full bg-[#e5eeff] text-[#45464d] flex items-center justify-center shrink-0">
-                <Users className="w-5 h-5" />
-              </div>
-              <div className="flex flex-col min-w-0">
+        {rows.length === 0 ? (
+          <div className="bg-white border border-[#c6c6cd] rounded-lg p-8 text-center text-sm text-[#5f636b] shadow-sm">
+            Belum ada data kehadiran hari ini.
+          </div>
+        ) : (
+          rows.map((a, i) => (
+            <div
+              key={`${a.name}-${i}`}
+              className="bg-white border border-[#c6c6cd] rounded-lg p-3 flex items-center justify-between gap-3 shadow-sm"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-10 w-10 rounded-full bg-[#e5eeff] text-[#45464d] flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5" />
+                </div>
                 <span className="text-sm font-medium text-[#0b1c30] truncate">
                   {a.name}
                 </span>
-                <span className="text-[12px] text-[#45464d]">{a.subject}</span>
+              </div>
+              <div className="flex flex-col items-end gap-1 shrink-0">
+                <span className="font-mono text-sm font-semibold text-[#0b1c30]">
+                  {fmtTime(a.time)}
+                </span>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${STATUS_CLASSES[a.status]}`}
+                >
+                  {a.status}
+                </span>
               </div>
             </div>
-            <div className="flex flex-col items-end gap-1 shrink-0">
-              <span className="font-mono text-sm font-semibold text-[#0b1c30]">
-                {a.time}
-              </span>
-              <span
-                className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-wider ${STATUS_CLASSES[a.status]}`}
-              >
-                {a.status}
-              </span>
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </section>
 
       {/* Attendance - Desktop Table */}
@@ -134,7 +222,7 @@ export default function AdminDashboardPage() {
             Kehadiran Hari Ini
           </h3>
           <span className="text-sm text-[#45464d]">
-            18 dari 24 guru hadir
+            {hadir} dari {totalTeachers} guru hadir
           </span>
         </div>
 
@@ -146,9 +234,6 @@ export default function AdminDashboardPage() {
                   Nama Guru
                 </TableHead>
                 <TableHead className="px-4 py-3 text-[12px] font-semibold uppercase tracking-wider text-[#45464d]">
-                  Mata Pelajaran
-                </TableHead>
-                <TableHead className="px-4 py-3 text-[12px] font-semibold uppercase tracking-wider text-[#45464d]">
                   Masuk
                 </TableHead>
                 <TableHead className="px-4 py-3 text-[12px] font-semibold uppercase tracking-wider text-[#45464d]">
@@ -157,29 +242,37 @@ export default function AdminDashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {ATTENDANCE.map((a) => (
-                <TableRow
-                  key={a.name}
-                  className="border-b border-[#c6c6cd] last:border-b-0"
-                >
-                  <TableCell className="px-4 py-3 text-sm font-medium text-[#0b1c30]">
-                    {a.name}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 text-sm text-[#45464d]">
-                    {a.subject}
-                  </TableCell>
-                  <TableCell className="px-4 py-3 font-mono text-sm text-[#0b1c30]">
-                    {a.time}
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium uppercase tracking-wider ${STATUS_CLASSES[a.status]}`}
-                    >
-                      {a.status}
-                    </span>
+              {rows.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={3}
+                    className="px-4 py-8 text-center text-sm text-[#5f636b]"
+                  >
+                    Belum ada data kehadiran hari ini.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                rows.map((a, i) => (
+                  <TableRow
+                    key={`${a.name}-${i}`}
+                    className="border-b border-[#c6c6cd] last:border-b-0"
+                  >
+                    <TableCell className="px-4 py-3 text-sm font-medium text-[#0b1c30]">
+                      {a.name}
+                    </TableCell>
+                    <TableCell className="px-4 py-3 font-mono text-sm text-[#0b1c30]">
+                      {fmtTime(a.time)}
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium uppercase tracking-wider ${STATUS_CLASSES[a.status]}`}
+                      >
+                        {a.status}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
