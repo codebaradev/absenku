@@ -1,15 +1,83 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { MapPin, Map, LogIn, LogOut } from "lucide-react";
+import { MapPin, Map, LogIn, LogOut, Loader2 } from "lucide-react";
+import {
+  checkIn,
+  checkOut,
+  getDashboardData,
+  type DashboardData,
+  type AttendanceResult,
+} from "@/lib/actions/attendance";
+import { haversineMeters } from "@/lib/geo";
+
+type Position = { latitude: number; longitude: number };
+type TodayView = NonNullable<Extract<DashboardData, { ok: true }>["today"]>;
+
+function formatClock(iso: string | null | undefined) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+}
+
+function getPosition(): Promise<Position | null> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) return resolve(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        resolve({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+        }),
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+}
 
 export default function AbsenKuDashboard() {
-  // State management
+  const [data, setData] = useState<Extract<DashboardData, { ok: true }> | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [today, setToday] = useState<TodayView | null>(null);
+  const [position, setPosition] = useState<Position | null>(null);
+  const [pending, setPending] = useState<"in" | "out" | null>(null);
+  const [notice, setNotice] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+  const [currentTime, setCurrentTime] = useState("");
+  const [currentDate, setCurrentDate] = useState("");
   const [activeTab, setActiveTab] = useState<"today" | "week">("today");
-  const [currentTime, setCurrentTime] = useState<string>("");
-  const [currentDate, setCurrentDate] = useState<string>("");
 
-  // Real-time clock effect
+  const school = data?.school ?? null;
+  const distance =
+    position && school
+      ? haversineMeters(
+          position.latitude,
+          position.longitude,
+          school.latitude,
+          school.longitude
+        )
+      : null;
+
+  useEffect(() => {
+    getDashboardData().then((res) => {
+      if (!res.ok) return setLoadError(res.error);
+      setData(res);
+      setToday(res.today);
+    });
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    getPosition().then((pos) => {
+      if (mounted) setPosition(pos);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   useEffect(() => {
     const updateTime = () => {
       const now = new Date();
@@ -30,27 +98,111 @@ export default function AbsenKuDashboard() {
         })
       );
     };
-
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
 
+  async function handleAction(action: "in" | "out") {
+    if (pending) return;
+    setNotice(null);
+    const pos = await getPosition();
+    if (!pos) {
+      setNotice({
+        type: "err",
+        text: "Lokasi tidak terdeteksi. Aktifkan GPS dan izinkan akses lokasi, lalu coba lagi.",
+      });
+      return;
+    }
+    setPosition(pos);
+    if (!school) return;
+
+    const dist = haversineMeters(
+      pos.latitude,
+      pos.longitude,
+      school.latitude,
+      school.longitude
+    );
+    if (dist > school.radiusMeters) {
+      setNotice({
+        type: "err",
+        text: `Anda berada di luar radius sekolah (jarak ${Math.round(dist)}m dari ${school.name}).`,
+      });
+      return;
+    }
+
+    setPending(action);
+    const res: AttendanceResult =
+      action === "in" ? await checkIn(pos.latitude, pos.longitude) : await checkOut(pos.latitude, pos.longitude);
+    setPending(null);
+
+    if (res.ok) {
+      setNotice({ type: "ok", text: res.message });
+      setToday((t) => ({
+        checkInTime: res.checkInTime ?? t?.checkInTime ?? null,
+        checkOutTime: res.checkOutTime ?? t?.checkOutTime ?? null,
+        status: res.status ?? t?.status ?? null,
+      }));
+    } else {
+      setNotice({ type: "err", text: res.error });
+    }
+  }
+
+  if (loadError) {
+    return <p className="text-sm text-[#ba1a1a]">{loadError}</p>;
+  }
+
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="w-6 h-6 animate-spin text-[#45464d]" />
+      </div>
+    );
+  }
+
+  const inRadius = distance !== null && school && distance <= school.radiusMeters;
+  const locationText = !school
+    ? "Sekolah belum diatur"
+    : distance === null
+      ? "Mengambil lokasi..."
+      : inRadius
+        ? `Di Dalam Radius ${Math.round(distance)}m`
+        : `Di Luar Radius ${Math.round(distance)}m`;
+
   return (
     <>
+      {notice && (
+        <div
+          className={`rounded-lg px-4 py-3 text-sm font-medium border ${
+            notice.type === "ok"
+              ? "bg-[#6cf8bb]/30 text-[#00714d] border-[#4edea3]/30"
+              : "bg-[#ffdad6] text-[#93000a] border-[#c6c6cd]"
+          }`}
+          role={notice.type === "err" ? "alert" : "status"}
+        >
+          {notice.text}
+        </div>
+      )}
+
       {/* Header Profil & Status Guru */}
       <section className="flex flex-col items-center text-center mt-2">
         <h2 className="text-xl font-semibold text-[#0b1c30]">
-          Budi Santoso, S.Pd
+          {data.user.fullName}
         </h2>
         <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#6cf8bb] text-[#00714d] border border-[#4edea3]/20">
             <span className="w-1.5 h-1.5 rounded-full bg-[#059669] mr-1.5"></span>
-            Online
+            {today?.checkInTime ? "Hadir" : "Belum Absen"}
           </span>
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium bg-[#d3e4fe] text-[#0b1c30] border border-[#c6c6cd]">
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-medium border ${
+              inRadius
+                ? "bg-[#d3e4fe] text-[#0b1c30] border-[#c6c6cd]"
+                : "bg-[#ffdad6] text-[#93000a] border-[#c6c6cd]"
+            }`}
+          >
             <MapPin className="w-3.5 h-3.5 mr-1 text-black" />
-            Di Dalam Radius 15m
+            {locationText}
           </span>
         </div>
       </section>
@@ -74,12 +226,18 @@ export default function AbsenKuDashboard() {
               Status Lokasi
             </h3>
           </div>
-          <span className="font-mono text-xs text-[#45464d] bg-[#e5eeff] px-2 py-1 rounded-md">
-            12m / 50m
-          </span>
+          {school && (
+            <button
+              type="button"
+              onClick={() => getPosition().then(setPosition)}
+              className="font-mono text-xs text-[#45464d] bg-[#e5eeff] px-2 py-1 rounded-md hover:bg-[#d3e4fe]"
+            >
+              {distance === null ? "..." : `${Math.round(distance)}m`} / {school.radiusMeters}m
+            </button>
+          )}
         </div>
         <div className="text-sm text-[#0b1c30]">
-          Sekolah Utama - SMA Negeri 1
+          {school ? school.name : "Sekolah belum diatur"}
         </div>
 
         {/* Visualisasi Peta Latar Belakang */}
@@ -90,13 +248,35 @@ export default function AbsenKuDashboard() {
 
       {/* Tombol Aksi Absensi */}
       <section className="grid grid-cols-2 gap-3 mt-2">
-        <button className="bg-[#047857] hover:bg-[#065f46] text-white rounded-lg h-[64px] flex flex-col items-center justify-center gap-1 shadow-sm active:scale-[0.98] transition-transform w-full">
-          <LogIn className="w-5 h-5 fill-current" />
-          <span className="text-sm font-semibold">Absen Masuk</span>
+        <button
+          type="button"
+          disabled={!!today?.checkInTime || pending !== null}
+          onClick={() => handleAction("in")}
+          className="bg-[#047857] hover:bg-[#065f46] disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg h-[64px] flex flex-col items-center justify-center gap-1 shadow-sm active:scale-[0.98] transition-transform w-full"
+        >
+          {pending === "in" ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <LogIn className="w-5 h-5 fill-current" />
+          )}
+          <span className="text-sm font-semibold">
+            {pending === "in" ? "Memproses..." : "Absen Masuk"}
+          </span>
         </button>
-        <button className="bg-white border border-[#878a91] hover:bg-[#eff4ff] text-black rounded-lg h-[64px] flex flex-col items-center justify-center gap-1 active:scale-[0.98] transition-transform w-full">
-          <LogOut className="w-5 h-5" />
-          <span className="text-sm font-medium">Absen Pulang</span>
+        <button
+          type="button"
+          disabled={!!today?.checkOutTime || pending !== null}
+          onClick={() => handleAction("out")}
+          className="bg-white border border-[#878a91] hover:bg-[#eff4ff] text-black rounded-lg h-[64px] flex flex-col items-center justify-center gap-1 active:scale-[0.98] transition-transform disabled:opacity-50 disabled:cursor-not-allowed w-full"
+        >
+          {pending === "out" ? (
+            <Loader2 className="w-5 h-5 animate-spin" />
+          ) : (
+            <LogOut className="w-5 h-5" />
+          )}
+          <span className="text-sm font-medium">
+            {pending === "out" ? "Memproses..." : "Absen Pulang"}
+          </span>
         </button>
       </section>
 
@@ -139,35 +319,41 @@ export default function AbsenKuDashboard() {
                 <LogIn className="w-5 h-5 fill-current" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-[#0b1c30]">
-                  Masuk
-                </span>
+                <span className="text-sm font-medium text-[#0b1c30]">Masuk</span>
                 <span className="text-[12px] font-semibold text-[#45464d] uppercase tracking-wider mt-0.5">
-                  Tepat Waktu
+                  {today?.checkInTime
+                    ? today.status === "PRESENT"
+                      ? "Tepat Waktu"
+                      : "Terlambat"
+                    : "Belum Tercatat"}
                 </span>
               </div>
             </div>
             <div className="font-mono text-sm font-semibold text-[#0b1c30]">
-              07:14
+              {formatClock(today?.checkInTime) ?? "--:--"}
             </div>
           </div>
 
-          {/* Item Card Placeholder - Absen Pulang (Empty State) */}
-          <div className="bg-white border border-[#c6c6cd] border-dashed rounded-lg p-3 flex justify-between items-center opacity-60">
+          {/* Item Card - Absen Pulang */}
+          <div
+            className={`bg-white border rounded-lg p-3 flex justify-between items-center ${
+              today?.checkOutTime ? "border-[#c6c6cd] shadow-sm" : "border-[#c6c6cd] border-dashed opacity-60"
+            }`}
+          >
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full bg-[#e5eeff] text-[#45464d] flex items-center justify-center shrink-0">
                 <LogOut className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-[#45464d]">
-                  Pulang
-                </span>
+                <span className="text-sm font-medium text-[#0b1c30]">Pulang</span>
                 <span className="text-[12px] font-semibold text-[#5f636b] uppercase tracking-wider mt-0.5">
-                  Belum Tercatat
+                  {today?.checkOutTime ? "Tercatat" : "Belum Tercatat"}
                 </span>
               </div>
             </div>
-            <div className="font-mono text-sm text-[#45464d]">--:--</div>
+            <div className="font-mono text-sm text-[#0b1c30]">
+              {formatClock(today?.checkOutTime) ?? "--:--"}
+            </div>
           </div>
         </div>
       </section>

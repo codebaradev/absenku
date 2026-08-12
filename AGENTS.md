@@ -12,7 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 PWA kehadiran guru (mobile-first, `max-w-[480px]`). Spek lengkap di `prd.md`.
 
-**Status backend:** yang terpasang ke DB: CRUD user `app/admin/users/*` (Prisma + server actions Supabase) dan autentikasi (login/logout, proteksi route by role — admin ke `/admin`, guru/staf ke `/dashboard`). Halaman admin lain (`page`, `absensi`, `izin`) dan semua halaman guru `(app)/*` masih data statis.
+**Status backend:** yang terpasang ke DB: CRUD user `app/admin/users/*` (Prisma + server actions Supabase), autentikasi (login/logout, proteksi route by role — admin ke `/admin`, guru/staf ke `/dashboard`), dan absen masuk/pulang di `app/(app)/dashboard` (geofence GPS, server actions `lib/actions/attendance.ts` + helper haversine `lib/geo.ts`). Halaman admin lain (`page`, `absensi`, `izin`) dan halaman guru `riwayat|izin|profile` masih data statis.
 
 ## Commands
 - Dev: `npm run dev`
@@ -28,7 +28,7 @@ PWA kehadiran guru (mobile-first, `max-w-[480px]`). Spek lengkap di `prd.md`.
 - Dua URL di `.env`: **CLI migrate pakai `DIRECT_URL`** (session mode, via `prisma.config.ts` yang `import "dotenv/config"` — `.env` tidak dibaca otomatis oleh Prisma CLI); **client runtime pakai `DATABASE_URL`** (pooler pgbouncer) di `lib/prisma.ts`.
 - Client siap pakai: `lib/prisma.ts` (PrismaClient), `lib/supabase.ts` (anon, client-side), `lib/supabase-server.ts` (`supabaseAdmin` pakai service-role — server-only).
 - `.env` butuh: `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. `.env.example` TIDAK lengkap (hanya `DATABASE_URL` placeholder) — jangan dijadikan acuan.
-- Skema di `prisma/schema.prisma` (migration `20260809183945_init` + `20260809192327_add_is_active_to_user`): model `School` (geofence lat/long/radius), `User`, `Attendance`, `LeaveRequest`. **Enums schema ≠ `prd.md`**: schema memakai `ADMIN/TEACHER/STAFF` & `PRESENT/LATE/ABSENT`; `prd.md` menyebut `ADMIN_TU/KEPALA_SEKOLAH/GURU`. Untuk kode, ikuti schema.
+- Skema di `prisma/schema.prisma` (migration `20260809183945_init`, `20260809192327_add_is_active_to_user`, `20260812043509_add_check_out_coords`): model `School` (geofence lat/long/radius + `check_in_start`/`check_in_end`), `User`, `Attendance` (punya `check_in_lat/long` + `check_out_lat/long`), `LeaveRequest`. **Enums schema ≠ `prd.md`**: schema memakai `ADMIN/TEACHER/STAFF` & `PRESENT/LATE/ABSENT`; `prd.md` menyebut `ADMIN_TU/KEPALA_SEKOLAH/GURU`. Untuk kode, ikuti schema. `@db.Time` (School) dan `@db.Date` (Attendance) dibaca Prisma sebagai JS Date — bandingkan via `getUTC*()`.
 - Invariant yang jangan dipatahkan: `users.id` = Supabase auth UID. `lib/actions/users.ts` menjaga sync Prisma ↔ Supabase Admin (create/update/delete/ban); ada fallback resolve via email karena user seed lama tidak sinkron. `getDefaultSchoolId()` memakai sekolah pertama (asumsi satu sekolah).
 - Autentikasi: login via `lib/actions/auth.ts` (email/NIP + password → `signInWithPassword` → cookie httpOnly), sesi divalidasi di `lib/session.ts` (Supabase `getUser` + cek role dari DB). Seeder healing: password akun yang sudah ada dipaksa ikut seeder.
 

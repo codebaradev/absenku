@@ -70,6 +70,8 @@ model Attendance {
   check_out_time DateTime?        @db.Timestamp
   check_in_lat   Decimal?         @db.Decimal(10, 8)
   check_in_long  Decimal?         @db.Decimal(11, 8)
+  check_out_lat  Decimal?         @db.Decimal(10, 8)
+  check_out_long Decimal?         @db.Decimal(11, 8)
   status         AttendanceStatus
 
   user User @relation(fields: [user_id], references: [id])
