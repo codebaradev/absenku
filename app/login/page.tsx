@@ -123,12 +123,12 @@ export default function LoginPage() {
                 <input type="checkbox" className="h-4 w-4 accent-[#0b1c30]" />
                 Ingat saya
               </label>
-              <button
+              {/* <button
                 type="button"
                 className="text-sm font-medium text-[#006c49] hover:underline"
               >
                 Lupa kata sandi?
-              </button>
+              </button> */}
             </div>
 
             <Button
@@ -140,7 +140,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-[#45464d] mt-6">
+          {/* <p className="text-center text-sm text-[#45464d] mt-6">
             Belum punya akun?{" "}
             <button
               type="button"
@@ -148,7 +148,7 @@ export default function LoginPage() {
             >
               Hubungi Admin Sekolah
             </button>
-          </p>
+          </p> */}
         </div>
       </main>
     </div>

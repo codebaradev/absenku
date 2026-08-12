@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useEffect, useState, useSyncExternalStore } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Download,
-  X,
   Radio,
   Home,
   History,
@@ -22,21 +20,6 @@ const NAV_ITEMS = [
   { href: "/profile", label: "Profil", icon: User },
 ];
 
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: string }>;
-};
-
-function subscribeStandalone(cb: () => void) {
-  const mq = window.matchMedia("(display-mode: standalone)");
-  mq.addEventListener("change", cb);
-  return () => mq.removeEventListener("change", cb);
-}
-
-function getStandaloneSnapshot() {
-  return window.matchMedia("(display-mode: standalone)").matches;
-}
-
 export function AppShell({
   children,
   fullName,
@@ -50,79 +33,11 @@ export function AppShell({
     .map((w) => w[0] ?? "")
     .join("")
     .toUpperCase();
-  const [showPwaBanner, setShowPwaBanner] = useState(true);
-  const isStandalone = useSyncExternalStore(
-    subscribeStandalone,
-    getStandaloneSnapshot,
-    () => false
-  );
-  const [installPrompt, setInstallPrompt] =
-    useState<BeforeInstallPromptEvent | null>(null);
-  const [showIosHelp, setShowIosHelp] = useState(false);
   const pathname = usePathname();
-
-  useEffect(() => {
-    const onPrompt = (e: Event) => {
-      e.preventDefault();
-      setInstallPrompt(e as BeforeInstallPromptEvent);
-    };
-    const onInstalled = () => {
-      setInstallPrompt(null);
-      setShowPwaBanner(false);
-    };
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    window.addEventListener("appinstalled", onInstalled);
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onPrompt);
-      window.removeEventListener("appinstalled", onInstalled);
-    };
-  }, []);
-
-  async function handleInstall() {
-    if (installPrompt) {
-      await installPrompt.prompt();
-      return;
-    }
-    setShowIosHelp((v) => !v);
-  }
 
   return (
     <div className="bg-[#f8f9ff] text-[#0b1c30] min-h-screen font-sans antialiased overflow-hidden flex justify-center">
       <main className="w-full max-w-[480px] bg-[#f8f9ff] min-h-screen relative overflow-y-auto overflow-x-hidden no-scrollbar pb-[100px] shadow-2xl flex flex-col">
-        {/* Banner PWA Install */}
-        {showPwaBanner && !isStandalone && (
-          <div className="bg-[#dce9ff] border-b border-[#c6c6cd] px-4 py-2 flex items-start gap-3 w-full shrink-0">
-            <Download className="text-black w-5 h-5 shrink-0 mt-0.5" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-[#0b1c30]">
-                Install AbsenKu App
-              </p>
-              <p className="text-[12px] text-[#45464d]">
-                Instal untuk akses GPS absen lebih lancar.
-              </p>
-              {showIosHelp && (
-                <p className="text-[12px] text-[#45464d] mt-1">
-                  iOS: tap ikon Bagikan lalu &quot;Tambah ke Layar Utama&quot;. Di
-                  Android/desktop: gunakan menu install browser.
-                </p>
-              )}
-              <button
-                onClick={handleInstall}
-                className="mt-1 text-sm font-semibold text-[#006c49] hover:underline"
-              >
-                {installPrompt ? "Install Sekarang" : "Cara Install"}
-              </button>
-            </div>
-            <button
-              onClick={() => setShowPwaBanner(false)}
-              className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-[#d3e4fe] transition-colors shrink-0"
-              aria-label="Tutup banner"
-            >
-              <X className="w-4 h-4 text-[#5f636b]" />
-            </button>
-          </div>
-        )}
-
         {/* Top App Bar Header */}
         <header className="bg-[#f8f9ff] border-b border-[#c6c6cd] sticky top-0 left-0 w-full z-40 flex justify-between items-center px-4 h-12 shrink-0 shadow-sm">
           <div className="flex items-center gap-3">

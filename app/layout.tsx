@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
 import { PwaRegister } from "@/components/pwa-register";
 import { PwaInstallPrompt } from "@/components/pwa-install-prompt";
+import { PwaUpdatePrompt } from "@/components/pwa-update-prompt";
 import "./globals.css";
 
 const inter = Inter({
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
         <PwaRegister />
         <PwaInstallPrompt />
+        <PwaUpdatePrompt />
         {children}
       </body>
     </html>

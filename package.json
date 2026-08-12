@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/write-build-id.mjs",
     "start": "next start",
     "lint": "eslint",
     "db:seed:admin": "node prisma/seeders/seed-admin.mjs",

@@ -207,7 +207,7 @@ export function ProfileView({
               <ChevronRight className="w-4 h-4 text-[#45464d]" />
             </button>
           </li>
-          {[
+          {/* {[
             { label: "Notifikasi", icon: BellRing },
             { label: "Pusat Bantuan", icon: CircleHelp },
           ].map(({ label, icon: Icon }, i) => (
@@ -223,7 +223,7 @@ export function ProfileView({
                 <ChevronRight className="w-4 h-4 text-[#45464d]" />
               </button>
             </li>
-          ))}
+          ))} */}
         </ul>
       </section>
 
