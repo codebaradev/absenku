@@ -15,6 +15,17 @@ import {
 } from "lucide-react";
 import { logout } from "@/lib/actions/auth";
 import type { Role } from "@prisma/client";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Beranda", icon: Home },
@@ -64,16 +75,34 @@ export function AppShell({
             <button className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors text-black active:scale-95 duration-100 shrink-0">
               <Radio className="w-5 h-5" />
             </button>
-            <form action={logout} className="shrink-0">
-              <button
-                type="submit"
-                title="Keluar"
-                aria-label="Keluar"
-                className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-[#fee2e2] hover:text-[#b91c1c] transition-colors text-[#45464d] active:scale-95 duration-100"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </form>
+            <Dialog>
+              <DialogTrigger>
+                <form action={logout} className="shrink-0">
+                  <button
+                    type="submit"
+                    title="Keluar"
+                    aria-label="Keluar"
+                    className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-[#fee2e2] hover:text-[#b91c1c] transition-colors text-[#45464d] active:scale-95 duration-100"
+                  >
+                    <LogOut className="w-5 h-5" />
+                  </button>
+                </form>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Konfirmasi Keluar</DialogTitle>
+                  <DialogDescription>Apakah Anda yakin ingin keluar dari akun ini?</DialogDescription>
+                </DialogHeader>
+                <DialogFooter showCloseButton>
+                  <DialogClose asChild>
+                    <Button variant="outline">Batal</Button>
+                  </DialogClose>
+                  <form action={logout}>
+                    <Button type="submit" variant="destructive">Keluar</Button>
+                  </form>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </header>
 
