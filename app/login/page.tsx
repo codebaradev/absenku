@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useActionState } from "react";
-import { GraduationCap, MapPin, CalendarCheck, FileText } from "lucide-react";
+import { MapPin, CalendarCheck, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { login, type LoginState } from "@/lib/actions/auth";
@@ -24,9 +24,11 @@ export default function LoginPage() {
       <aside className="hidden md:flex md:w-[45%] lg:w-1/2 bg-[#0b1c30] text-[#eaf1ff] flex-col justify-between p-10 lg:p-12">
         <div>
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-white text-black flex items-center justify-center">
-              <GraduationCap className="w-6 h-6" />
-            </div>
+            <img
+              src="/icons/icon-192.png"
+              alt="Logo AbsenKu"
+              className="h-10 w-10 rounded-lg"
+            />
             <span className="text-xl font-bold tracking-tight">AbsenKu</span>
           </div>
 
@@ -59,9 +61,11 @@ export default function LoginPage() {
         <div className="w-full max-w-[400px]">
           {/* Mobile Brand */}
           <div className="md:hidden flex flex-col items-center mb-8">
-            <div className="h-12 w-12 rounded-xl bg-black text-white flex items-center justify-center">
-              <GraduationCap className="w-7 h-7" />
-            </div>
+            <img
+              src="/icons/icon-192.png"
+              alt="Logo AbsenKu"
+              className="h-12 w-12 rounded-xl"
+            />
             <span className="mt-3 text-2xl font-bold tracking-tight text-[#0b1c30]">
               AbsenKu
             </span>

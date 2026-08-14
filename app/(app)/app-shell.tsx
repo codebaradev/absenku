@@ -72,9 +72,9 @@ export function AppShell({
             </h1>
           </div>
           <div className="flex items-center gap-1">
-            <button className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors text-black active:scale-95 duration-100 shrink-0">
+            {/* <button className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-[#eff4ff] transition-colors text-black active:scale-95 duration-100 shrink-0">
               <Radio className="w-5 h-5" />
-            </button>
+            </button> */}
             <Dialog>
               <DialogTrigger>
                 <form action={logout} className="shrink-0">

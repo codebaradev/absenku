@@ -128,7 +128,7 @@ export default async function AdminDashboardPage() {
             Rekap kehadiran guru — {school?.name ?? "Sekolah"} · {dateLabel}
           </p>
         </div>
-        <div className="grid grid-cols-2 gap-3 md:flex md:gap-3">
+        {/* <div className="grid grid-cols-2 gap-3 md:flex md:gap-3">
           <button className="bg-white border border-[#878a91] hover:bg-[#eff4ff] text-black rounded-lg h-12 md:h-10 md:px-4 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform shadow-sm">
             <FileSpreadsheet className="w-5 h-5 text-[#006c49]" />
             <span className="text-sm font-medium">Export Excel</span>
@@ -137,7 +137,7 @@ export default async function AdminDashboardPage() {
             <FileText className="w-5 h-5 text-[#ba1a1a]" />
             <span className="text-sm font-medium">Export PDF</span>
           </button>
-        </div>
+        </div> */}
       </section>
 
       {/* Statistics Summary */}

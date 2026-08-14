@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  GraduationCap,
   LayoutDashboard,
   CalendarCheck,
   CalendarClock,
@@ -43,9 +42,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex fixed left-0 top-0 h-full w-64 bg-white border-r border-[#c6c6cd] flex-col p-4 z-40">
         <div className="flex items-center gap-3 px-2 h-12 shrink-0">
-          <div className="h-9 w-9 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
-            <GraduationCap className="w-5 h-5" />
-          </div>
+          <img
+            src="/icons/icon-192.png"
+            alt="Logo AbsenKu"
+            className="h-9 w-9 rounded-lg shrink-0"
+          />
           <div className="flex flex-col">
             <span className="text-lg font-bold tracking-tight text-[#0b1c30] leading-tight">
               AbsenKu
@@ -107,9 +108,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       {/* Mobile Top Bar */}
       <header className="md:hidden sticky top-0 z-40 bg-white border-b border-[#c6c6cd] px-4 h-12 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-black text-white flex items-center justify-center shrink-0">
-            <GraduationCap className="w-5 h-5" />
-          </div>
+          <img
+            src="/icons/icon-192.png"
+            alt="Logo AbsenKu"
+            className="h-8 w-8 rounded-lg shrink-0"
+          />
           <h1 className="text-lg font-bold tracking-tight text-[#0b1c30]">
             AbsenKu
           </h1>
