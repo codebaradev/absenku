@@ -76,15 +76,17 @@ export function AppShell({
               <Radio className="w-5 h-5" />
             </button> */}
             <Dialog>
-              <DialogTrigger asChild>
-                <button
-                  type="button"
-                  title="Keluar"
-                  aria-label="Keluar"
-                  className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-[#fee2e2] hover:text-[#b91c1c] transition-colors text-[#45464d] active:scale-95 duration-100"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
+              <DialogTrigger
+                render={
+                  <button
+                    type="button"
+                    title="Keluar"
+                    aria-label="Keluar"
+                    className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-[#fee2e2] hover:text-[#b91c1c] transition-colors text-[#45464d] active:scale-95 duration-100"
+                  />
+                }
+              >
+                <LogOut className="w-5 h-5" />
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -92,8 +94,8 @@ export function AppShell({
                   <DialogDescription>Apakah Anda yakin ingin keluar dari akun ini?</DialogDescription>
                 </DialogHeader>
                 <DialogFooter showCloseButton>
-                  <DialogClose asChild>
-                    <Button variant="outline">Batal</Button>
+                  <DialogClose render={<Button variant="outline" />}>
+                    Batal
                   </DialogClose>
                   <form action={logout}>
                     <Button type="submit" variant="destructive">Keluar</Button>
