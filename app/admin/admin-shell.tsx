@@ -79,13 +79,11 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
         <div className="mt-auto">
           <Dialog>
-            <DialogTrigger>
-              <form action={logout}>
-                <button className="flex items-center gap-3 h-11 w-full rounded-lg px-3 text-sm font-medium text-[#45464d] hover:bg-[#fee2e2] hover:text-[#b91c1c] transition-colors">
-                  <LogOut className="w-5 h-5" />
-                  Keluar
-                </button>
-              </form>
+            <DialogTrigger asChild>
+              <button className="flex items-center gap-3 h-11 w-full rounded-lg px-3 text-sm font-medium text-[#45464d] hover:bg-[#fee2e2] hover:text-[#b91c1c] transition-colors">
+                <LogOut className="w-5 h-5" />
+                Keluar
+              </button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -125,17 +123,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <BellRing className="w-5 h-5" />
           </button>
           <Dialog>
-            <DialogTrigger>
-              <form action={logout}>
-                <button
-                  type="submit"
-                  title="Keluar"
-                  aria-label="Keluar"
-                  className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-[#fee2e2] hover:text-[#b91c1c] transition-colors text-[#45464d]"
-                >
-                  <LogOut className="w-5 h-5" />
-                </button>
-              </form>
+            <DialogTrigger asChild>
+              <button
+                type="button"
+                title="Keluar"
+                aria-label="Keluar"
+                className="h-10 w-10 flex items-center justify-center rounded-full hover:bg-[#fee2e2] hover:text-[#b91c1c] transition-colors text-[#45464d]"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
